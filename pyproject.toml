@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hivemake-models"
+version = "0.1.0"
+description = "Shared data models and enums for HiveMake.ai"
+requires-python = ">=3.12"
+license = {text = "Proprietary"}
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["hivemake_models"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -8,20 +8,20 @@ This is a lightweight library with no database dependencies. It defines the comm
 
 | Enum | Values |
 |------|--------|
-| `TenantStatus` | active, suspended, deactivated |
+| `TenantStatus` | active, suspended, deleted |
 | `UserRole` | owner, admin, member |
 | `UserStatus` | active, disabled |
 | `ProjectStatus` | active, archived |
 | `AgentStatus` | active, paused, disabled |
-| `TicketType` | bug, feature_request, task, question |
-| `TicketPriority` | low, medium, high, critical |
-| `TicketStatus` | open, triaging, in_progress, pending_approval, denied, blocked, resolved, closed |
-| `NegotiationAction` | redirected, accepted, rejected, escalated, approval_requested, approved, denied, revision_requested |
+| `TicketType` | bug, feature_request, task |
+| `TicketPriority` | critical, high, medium, low |
+| `TicketStatus` | open, triaging, accepted, in_progress, pending_approval, resolved, closed, rejected, denied |
+| `NegotiationAction` | submitted, accepted, rejected, redirected, info_requested, info_provided, approval_requested, approved, denied, revision_requested |
 | `LearningCategory` | routing, error_pattern, domain_knowledge |
 
 ## Models
 
-`Tenant`, `User`, `Project`, `Agent`, `ProjectDependency`, `AgentLearning`, `Ticket`, `Negotiation`, `TicketHistory`
+`Tenant`, `User`, `ApiKey`, `Project`, `Agent`, `AgentLearning`, `Ticket`, `Negotiation`, `TicketHistory`
 
 All models are Python dataclasses. UUID primary keys, BIGINT unix timestamps for all date/time fields.
 
@@ -30,7 +30,7 @@ All models are Python dataclasses. UUID primary keys, BIGINT unix timestamps for
 Private repository — requires a GitHub personal access token:
 
 ```bash
-pip install hivemake-models @ git+https://${CR_PAT}@github.com/Really-Bad-Apps/hivemake-models.git
+pip install "hivemake-models @ git+https://${CR_PAT}@github.com/Really-Bad-Apps/hivemake-models.git"
 ```
 
 ## Usage

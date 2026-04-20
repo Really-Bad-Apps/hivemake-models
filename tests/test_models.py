@@ -15,9 +15,9 @@ from hivemake_models.enums import (
 from hivemake_models.models import (
     Agent,
     AgentLearning,
+    ApiKey,
     Negotiation,
     Project,
-    ProjectDependency,
     Tenant,
     Ticket,
     TicketHistory,
@@ -39,6 +39,20 @@ class TestTenant:
         assert tenant.name == "Acme Corp"
         assert tenant.status == TenantStatus.ACTIVE
         assert tenant.status == "active"
+        assert tenant.notifications_channel_id is None
+
+    def test_create_with_notifications_channel(self) -> None:
+        tenant = Tenant(
+            id=uuid4(),
+            aegis_site_id=1,
+            name="Acme Corp",
+            slug="acme-corp",
+            status=TenantStatus.ACTIVE,
+            created_at=1700000000,
+            updated_at=1700000000,
+            notifications_channel_id="-1001234567890",
+        )
+        assert tenant.notifications_channel_id == "-1001234567890"
 
 
 class TestUser:
@@ -57,6 +71,22 @@ class TestUser:
         )
         assert user.role == UserRole.OWNER
         assert user.tenant_id == tenant_id
+        assert user.telegram_chat_id is None
+
+    def test_create_with_telegram(self) -> None:
+        user = User(
+            id=uuid4(),
+            tenant_id=uuid4(),
+            aegis_user_id=42,
+            email="jason@acme.com",
+            display_name="Jason",
+            role=UserRole.OWNER,
+            status=UserStatus.ACTIVE,
+            created_at=1700000000,
+            updated_at=1700000000,
+            telegram_chat_id="123456789",
+        )
+        assert user.telegram_chat_id == "123456789"
 
 
 class TestProject:
@@ -98,7 +128,6 @@ class TestAgent:
             updated_at=1700000000,
         )
         assert agent.config == {}
-        assert agent.gatekeeper_client_id is None
         assert agent.description is None
 
     def test_create_with_config(self) -> None:
@@ -125,16 +154,53 @@ class TestAgent:
         assert agent.config["redirect_rules"]["max_redirects"] == 3
 
 
-class TestProjectDependency:
-    def test_create(self) -> None:
-        dep = ProjectDependency(
+class TestApiKey:
+    def test_create_minimal(self) -> None:
+        key = ApiKey(
             id=uuid4(),
             tenant_id=uuid4(),
-            project_id=uuid4(),
-            depends_on_project_id=uuid4(),
+            name="prod",
+            key_prefix="hmk_live_7Kq2…abcd",
+            key_hash="a" * 64,
+            created_by_user_id=uuid4(),
             created_at=1700000000,
+            updated_at=1700000000,
         )
-        assert dep.project_id != dep.depends_on_project_id
+        assert key.expires_at is None
+        assert key.revoked_at is None
+        assert key.revoked_by_user_id is None
+        assert key.last_used_at is None
+
+    def test_create_with_expiry(self) -> None:
+        key = ApiKey(
+            id=uuid4(),
+            tenant_id=uuid4(),
+            name="contractor-q2",
+            key_prefix="hmk_live_9Zf1…wxyz",
+            key_hash="b" * 64,
+            created_by_user_id=uuid4(),
+            created_at=1700000000,
+            updated_at=1700000000,
+            expires_at=1710000000,
+        )
+        assert key.expires_at == 1710000000
+
+    def test_revoked_key(self) -> None:
+        revoker_id = uuid4()
+        key = ApiKey(
+            id=uuid4(),
+            tenant_id=uuid4(),
+            name="old-ci",
+            key_prefix="hmk_live_3Aa2…defg",
+            key_hash="c" * 64,
+            created_by_user_id=uuid4(),
+            created_at=1700000000,
+            updated_at=1700000100,
+            revoked_at=1700000100,
+            revoked_by_user_id=revoker_id,
+        )
+        assert key.revoked_at == 1700000100
+        assert key.revoked_by_user_id == revoker_id
 
 
 class TestAgentLearning:

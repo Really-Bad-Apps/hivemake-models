@@ -25,6 +25,7 @@ class Tenant:
     status: TenantStatus
     created_at: int
     updated_at: int
+    notifications_channel_id: Optional[str] = None
 
 
 @dataclass
@@ -38,6 +39,23 @@ class User:
     status: UserStatus
     created_at: int
     updated_at: int
+    telegram_chat_id: Optional[str] = None
+
+
+@dataclass
+class ApiKey:
+    id: UUID
+    tenant_id: UUID
+    name: str
+    key_prefix: str
+    key_hash: str
+    created_by_user_id: UUID
+    created_at: int
+    updated_at: int
+    expires_at: Optional[int] = None
+    revoked_at: Optional[int] = None
+    revoked_by_user_id: Optional[UUID] = None
+    last_used_at: Optional[int] = None
 
 
 @dataclass
@@ -61,18 +79,8 @@ class Agent:
     status: AgentStatus
     created_at: int
     updated_at: int
-    gatekeeper_client_id: Optional[UUID] = None
     description: Optional[str] = None
     config: dict = field(default_factory=dict)
-
-
-@dataclass
-class ProjectDependency:
-    id: UUID
-    tenant_id: UUID
-    project_id: UUID
-    depends_on_project_id: UUID
-    created_at: int
 
 
 @dataclass

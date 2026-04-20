@@ -13,9 +13,9 @@ from hivemake_models.enums import (
 from hivemake_models.models import (
     Agent,
     AgentLearning,
+    ApiKey,
     Negotiation,
     Project,
-    ProjectDependency,
     Tenant,
     Ticket,
     TicketHistory,
@@ -37,9 +37,9 @@ __all__ = [
     # Models
     "Agent",
     "AgentLearning",
+    "ApiKey",
     "Negotiation",
     "Project",
-    "ProjectDependency",
     "Tenant",
     "Ticket",
     "TicketHistory",

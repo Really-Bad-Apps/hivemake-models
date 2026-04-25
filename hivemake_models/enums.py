@@ -71,3 +71,10 @@ class LearningCategory(StrEnum):
     ROUTING = "routing"
     ERROR_PATTERN = "error_pattern"
     DOMAIN_KNOWLEDGE = "domain_knowledge"
+
+
+class InviteStatus(StrEnum):
+    PENDING = "pending"
+    ACCEPTED = "accepted"
+    REVOKED = "revoked"
+    EXPIRED = "expired"

@@ -18,10 +18,11 @@ This is a lightweight library with no database dependencies. It defines the comm
 | `TicketStatus` | open, triaging, accepted, in_progress, pending_approval, resolved, closed, rejected, denied |
 | `NegotiationAction` | submitted, accepted, rejected, redirected, info_requested, info_provided, approval_requested, approved, denied, revision_requested |
 | `LearningCategory` | routing, error_pattern, domain_knowledge |
+| `InviteStatus` | pending, accepted, revoked, expired |
 
 ## Models
 
-`Tenant`, `User`, `ApiKey`, `Project`, `Agent`, `AgentLearning`, `Ticket`, `Negotiation`, `TicketHistory`
+`Tenant`, `User`, `ApiKey`, `Project`, `Agent`, `AgentLearning`, `Ticket`, `Negotiation`, `TicketHistory`, `Invite`
 
 All models are Python dataclasses. UUID primary keys, BIGINT unix timestamps for all date/time fields.
 

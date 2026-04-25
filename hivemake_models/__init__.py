@@ -1,5 +1,6 @@
 from hivemake_models.enums import (
     AgentStatus,
+    InviteStatus,
     LearningCategory,
     NegotiationAction,
     ProjectStatus,
@@ -14,6 +15,7 @@ from hivemake_models.models import (
     Agent,
     AgentLearning,
     ApiKey,
+    Invite,
     Negotiation,
     Project,
     Tenant,
@@ -25,6 +27,7 @@ from hivemake_models.models import (
 __all__ = [
     # Enums
     "AgentStatus",
+    "InviteStatus",
     "LearningCategory",
     "NegotiationAction",
     "ProjectStatus",
@@ -38,6 +41,7 @@ __all__ = [
     "Agent",
     "AgentLearning",
     "ApiKey",
+    "Invite",
     "Negotiation",
     "Project",
     "Tenant",

@@ -1,5 +1,6 @@
 from hivemake_models.enums import (
     AgentStatus,
+    InviteStatus,
     LearningCategory,
     NegotiationAction,
     ProjectStatus,
@@ -122,6 +123,17 @@ class TestLearningCategory:
 
     def test_member_count(self) -> None:
         assert len(LearningCategory) == 3
+
+
+class TestInviteStatus:
+    def test_values(self) -> None:
+        assert InviteStatus.PENDING == "pending"
+        assert InviteStatus.ACCEPTED == "accepted"
+        assert InviteStatus.REVOKED == "revoked"
+        assert InviteStatus.EXPIRED == "expired"
+
+    def test_member_count(self) -> None:
+        assert len(InviteStatus) == 4
 
 
 class TestEnumsAreStrEnum:

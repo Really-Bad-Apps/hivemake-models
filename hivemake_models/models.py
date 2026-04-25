@@ -4,6 +4,7 @@ from uuid import UUID
 
 from hivemake_models.enums import (
     AgentStatus,
+    InviteStatus,
     LearningCategory,
     NegotiationAction,
     ProjectStatus,
@@ -19,7 +20,6 @@ from hivemake_models.enums import (
 @dataclass
 class Tenant:
     id: UUID
-    aegis_site_id: int
     name: str
     slug: str
     status: TenantStatus
@@ -142,3 +142,19 @@ class TicketHistory:
     actor_user_id: Optional[UUID] = None
     old_value: Optional[str] = None
     new_value: Optional[str] = None
+
+
+@dataclass
+class Invite:
+    id: UUID
+    tenant_id: UUID
+    email: str
+    role: UserRole
+    token: str
+    status: InviteStatus
+    created_by_user_id: UUID
+    expires_at: int
+    created_at: int
+    updated_at: int
+    accepted_at: Optional[int] = None
+    accepted_by_aegis_user_id: Optional[int] = None

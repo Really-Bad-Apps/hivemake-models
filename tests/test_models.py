@@ -2,6 +2,7 @@ from uuid import uuid4
 
 from hivemake_models.enums import (
     AgentStatus,
+    InviteStatus,
     LearningCategory,
     NegotiationAction,
     ProjectStatus,
@@ -16,6 +17,7 @@ from hivemake_models.models import (
     Agent,
     AgentLearning,
     ApiKey,
+    Invite,
     Negotiation,
     Project,
     Tenant,
@@ -29,7 +31,6 @@ class TestTenant:
     def test_create(self) -> None:
         tenant = Tenant(
             id=uuid4(),
-            aegis_site_id=1,
             name="Acme Corp",
             slug="acme-corp",
             status=TenantStatus.ACTIVE,
@@ -44,7 +45,6 @@ class TestTenant:
     def test_create_with_notifications_channel(self) -> None:
         tenant = Tenant(
             id=uuid4(),
-            aegis_site_id=1,
             name="Acme Corp",
             slug="acme-corp",
             status=TenantStatus.ACTIVE,
@@ -367,3 +367,40 @@ class TestTicketHistory:
             new_value="resolved",
         )
         assert history.actor_agent_id is None
+
+
+class TestInvite:
+    def test_create_minimal(self) -> None:
+        invite = Invite(
+            id=uuid4(),
+            tenant_id=uuid4(),
+            email="alice@acme.com",
+            role=UserRole.MEMBER,
+            token="opaque-token-abc",
+            status=InviteStatus.PENDING,
+            created_by_user_id=uuid4(),
+            expires_at=1700000000 + 7 * 24 * 60 * 60,
+            created_at=1700000000,
+            updated_at=1700000000,
+        )
+        assert invite.status == InviteStatus.PENDING
+        assert invite.accepted_at is None
+        assert invite.accepted_by_aegis_user_id is None
+
+    def test_create_accepted(self) -> None:
+        invite = Invite(
+            id=uuid4(),
+            tenant_id=uuid4(),
+            email="bob@acme.com",
+            role=UserRole.ADMIN,
+            token="opaque-token-xyz",
+            status=InviteStatus.ACCEPTED,
+            created_by_user_id=uuid4(),
+            expires_at=1700000000 + 7 * 24 * 60 * 60,
+            created_at=1700000000,
+            updated_at=1700000050,
+            accepted_at=1700000050,
+            accepted_by_aegis_user_id=42,
+        )
+        assert invite.status == InviteStatus.ACCEPTED
+        assert invite.accepted_by_aegis_user_id == 42

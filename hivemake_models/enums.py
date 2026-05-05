@@ -1,13 +1,13 @@
 from enum import StrEnum
 
 
-class TenantStatus(StrEnum):
+class HiveStatus(StrEnum):
     ACTIVE = "active"
     SUSPENDED = "suspended"
     DELETED = "deleted"
 
 
-class UserRole(StrEnum):
+class HiveMemberRole(StrEnum):
     OWNER = "owner"
     ADMIN = "admin"
     MEMBER = "member"

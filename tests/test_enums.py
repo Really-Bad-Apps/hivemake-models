@@ -1,5 +1,7 @@
 from hivemake_models.enums import (
     AgentStatus,
+    HiveMemberRole,
+    HiveStatus,
     InviteStatus,
     LearningCategory,
     NegotiationAction,
@@ -7,30 +9,28 @@ from hivemake_models.enums import (
     TicketPriority,
     TicketStatus,
     TicketType,
-    TenantStatus,
-    UserRole,
     UserStatus,
 )
 
 
-class TestTenantStatus:
+class TestHiveStatus:
     def test_values(self) -> None:
-        assert TenantStatus.ACTIVE == "active"
-        assert TenantStatus.SUSPENDED == "suspended"
-        assert TenantStatus.DELETED == "deleted"
+        assert HiveStatus.ACTIVE == "active"
+        assert HiveStatus.SUSPENDED == "suspended"
+        assert HiveStatus.DELETED == "deleted"
 
     def test_member_count(self) -> None:
-        assert len(TenantStatus) == 3
+        assert len(HiveStatus) == 3
 
 
-class TestUserRole:
+class TestHiveMemberRole:
     def test_values(self) -> None:
-        assert UserRole.OWNER == "owner"
-        assert UserRole.ADMIN == "admin"
-        assert UserRole.MEMBER == "member"
+        assert HiveMemberRole.OWNER == "owner"
+        assert HiveMemberRole.ADMIN == "admin"
+        assert HiveMemberRole.MEMBER == "member"
 
     def test_member_count(self) -> None:
-        assert len(UserRole) == 3
+        assert len(HiveMemberRole) == 3
 
 
 class TestUserStatus:
@@ -139,8 +139,8 @@ class TestInviteStatus:
 class TestEnumsAreStrEnum:
     """All enums should be StrEnum so they serialize as strings."""
 
-    def test_tenant_status_is_string(self) -> None:
-        assert isinstance(TenantStatus.ACTIVE, str)
+    def test_hive_status_is_string(self) -> None:
+        assert isinstance(HiveStatus.ACTIVE, str)
 
     def test_negotiation_action_is_string(self) -> None:
         assert isinstance(NegotiationAction.SUBMITTED, str)

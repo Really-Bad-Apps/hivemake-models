@@ -4,6 +4,8 @@ from uuid import UUID
 
 from hivemake_models.enums import (
     AgentStatus,
+    HiveMemberRole,
+    HiveStatus,
     InviteStatus,
     LearningCategory,
     NegotiationAction,
@@ -11,18 +13,16 @@ from hivemake_models.enums import (
     TicketPriority,
     TicketStatus,
     TicketType,
-    TenantStatus,
-    UserRole,
     UserStatus,
 )
 
 
 @dataclass
-class Tenant:
+class Hive:
     id: UUID
     name: str
     slug: str
-    status: TenantStatus
+    status: HiveStatus
     created_at: int
     updated_at: int
     notifications_channel_id: Optional[str] = None
@@ -30,12 +30,11 @@ class Tenant:
 
 @dataclass
 class User:
+    """Global user record. One row per Aegis identity, regardless of hive count."""
     id: UUID
-    tenant_id: UUID
     aegis_user_id: int
     email: str
     display_name: str
-    role: UserRole
     status: UserStatus
     created_at: int
     updated_at: int
@@ -43,9 +42,19 @@ class User:
 
 
 @dataclass
+class HiveMember:
+    """Junction row — which user belongs to which hive, and with what role."""
+    user_id: UUID
+    hive_id: UUID
+    role: HiveMemberRole
+    created_at: int
+
+
+@dataclass
 class ApiKey:
+    """Project-scoped. The key authenticates as the project's agent."""
     id: UUID
-    tenant_id: UUID
+    project_id: UUID
     name: str
     key_prefix: str
     key_hash: str
@@ -61,7 +70,7 @@ class ApiKey:
 @dataclass
 class Project:
     id: UUID
-    tenant_id: UUID
+    hive_id: UUID
     name: str
     slug: str
     status: ProjectStatus
@@ -73,7 +82,7 @@ class Project:
 @dataclass
 class Agent:
     id: UUID
-    tenant_id: UUID
+    hive_id: UUID
     project_id: UUID
     name: str
     status: AgentStatus
@@ -86,7 +95,7 @@ class Agent:
 @dataclass
 class AgentLearning:
     id: UUID
-    tenant_id: UUID
+    hive_id: UUID
     agent_id: UUID
     content: str
     active: bool
@@ -99,7 +108,7 @@ class AgentLearning:
 @dataclass
 class Ticket:
     id: UUID
-    tenant_id: UUID
+    hive_id: UUID
     project_id: UUID
     created_by_agent_id: UUID
     ticket_type: TicketType
@@ -119,7 +128,7 @@ class Ticket:
 @dataclass
 class Negotiation:
     id: UUID
-    tenant_id: UUID
+    hive_id: UUID
     ticket_id: UUID
     action: NegotiationAction
     message: str
@@ -134,7 +143,7 @@ class Negotiation:
 @dataclass
 class TicketHistory:
     id: UUID
-    tenant_id: UUID
+    hive_id: UUID
     ticket_id: UUID
     field_changed: str
     created_at: int
@@ -147,9 +156,9 @@ class TicketHistory:
 @dataclass
 class Invite:
     id: UUID
-    tenant_id: UUID
+    hive_id: UUID
     email: str
-    role: UserRole
+    role: HiveMemberRole
     token: str
     status: InviteStatus
     created_by_user_id: UUID

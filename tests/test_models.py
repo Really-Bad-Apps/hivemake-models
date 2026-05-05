@@ -2,6 +2,8 @@ from uuid import uuid4
 
 from hivemake_models.enums import (
     AgentStatus,
+    HiveMemberRole,
+    HiveStatus,
     InviteStatus,
     LearningCategory,
     NegotiationAction,
@@ -9,78 +11,72 @@ from hivemake_models.enums import (
     TicketPriority,
     TicketStatus,
     TicketType,
-    TenantStatus,
-    UserRole,
     UserStatus,
 )
 from hivemake_models.models import (
     Agent,
     AgentLearning,
     ApiKey,
+    Hive,
+    HiveMember,
     Invite,
     Negotiation,
     Project,
-    Tenant,
     Ticket,
     TicketHistory,
     User,
 )
 
 
-class TestTenant:
+class TestHive:
     def test_create(self) -> None:
-        tenant = Tenant(
+        hive = Hive(
             id=uuid4(),
             name="Acme Corp",
             slug="acme-corp",
-            status=TenantStatus.ACTIVE,
+            status=HiveStatus.ACTIVE,
             created_at=1700000000,
             updated_at=1700000000,
         )
-        assert tenant.name == "Acme Corp"
-        assert tenant.status == TenantStatus.ACTIVE
-        assert tenant.status == "active"
-        assert tenant.notifications_channel_id is None
+        assert hive.name == "Acme Corp"
+        assert hive.status == HiveStatus.ACTIVE
+        assert hive.status == "active"
+        assert hive.notifications_channel_id is None
 
     def test_create_with_notifications_channel(self) -> None:
-        tenant = Tenant(
+        hive = Hive(
             id=uuid4(),
             name="Acme Corp",
             slug="acme-corp",
-            status=TenantStatus.ACTIVE,
+            status=HiveStatus.ACTIVE,
             created_at=1700000000,
             updated_at=1700000000,
             notifications_channel_id="-1001234567890",
         )
-        assert tenant.notifications_channel_id == "-1001234567890"
+        assert hive.notifications_channel_id == "-1001234567890"
 
 
 class TestUser:
     def test_create(self) -> None:
-        tenant_id = uuid4()
         user = User(
             id=uuid4(),
-            tenant_id=tenant_id,
             aegis_user_id=42,
             email="jason@acme.com",
             display_name="Jason",
-            role=UserRole.OWNER,
             status=UserStatus.ACTIVE,
             created_at=1700000000,
             updated_at=1700000000,
         )
-        assert user.role == UserRole.OWNER
-        assert user.tenant_id == tenant_id
+        assert user.aegis_user_id == 42
+        assert user.email == "jason@acme.com"
         assert user.telegram_chat_id is None
 
     def test_create_with_telegram(self) -> None:
         user = User(
             id=uuid4(),
-            tenant_id=uuid4(),
             aegis_user_id=42,
             email="jason@acme.com",
             display_name="Jason",
-            role=UserRole.OWNER,
             status=UserStatus.ACTIVE,
             created_at=1700000000,
             updated_at=1700000000,
@@ -89,11 +85,36 @@ class TestUser:
         assert user.telegram_chat_id == "123456789"
 
 
+class TestHiveMember:
+    def test_create(self) -> None:
+        user_id = uuid4()
+        hive_id = uuid4()
+        member = HiveMember(
+            user_id=user_id,
+            hive_id=hive_id,
+            role=HiveMemberRole.OWNER,
+            created_at=1700000000,
+        )
+        assert member.user_id == user_id
+        assert member.hive_id == hive_id
+        assert member.role == HiveMemberRole.OWNER
+        assert member.role == "owner"
+
+    def test_admin_role(self) -> None:
+        member = HiveMember(
+            user_id=uuid4(),
+            hive_id=uuid4(),
+            role=HiveMemberRole.ADMIN,
+            created_at=1700000000,
+        )
+        assert member.role == HiveMemberRole.ADMIN
+
+
 class TestProject:
     def test_create_with_description(self) -> None:
         project = Project(
             id=uuid4(),
-            tenant_id=uuid4(),
+            hive_id=uuid4(),
             name="Web App",
             slug="web-app",
             status=ProjectStatus.ACTIVE,
@@ -106,7 +127,7 @@ class TestProject:
     def test_create_without_description(self) -> None:
         project = Project(
             id=uuid4(),
-            tenant_id=uuid4(),
+            hive_id=uuid4(),
             name="Web App",
             slug="web-app",
             status=ProjectStatus.ACTIVE,
@@ -120,7 +141,7 @@ class TestAgent:
     def test_create_with_defaults(self) -> None:
         agent = Agent(
             id=uuid4(),
-            tenant_id=uuid4(),
+            hive_id=uuid4(),
             project_id=uuid4(),
             name="App Agent",
             status=AgentStatus.ACTIVE,
@@ -142,7 +163,7 @@ class TestAgent:
         }
         agent = Agent(
             id=uuid4(),
-            tenant_id=uuid4(),
+            hive_id=uuid4(),
             project_id=uuid4(),
             name="App Agent",
             status=AgentStatus.ACTIVE,
@@ -158,9 +179,9 @@ class TestApiKey:
     def test_create_minimal(self) -> None:
         key = ApiKey(
             id=uuid4(),
-            tenant_id=uuid4(),
+            project_id=uuid4(),
             name="prod",
-            key_prefix="hmk_live_7Kq2…abcd",
+            key_prefix="hm_authsvc_3kx9",
             key_hash="a" * 64,
             created_by_user_id=uuid4(),
             created_at=1700000000,
@@ -174,9 +195,9 @@ class TestApiKey:
     def test_create_with_expiry(self) -> None:
         key = ApiKey(
             id=uuid4(),
-            tenant_id=uuid4(),
+            project_id=uuid4(),
             name="contractor-q2",
-            key_prefix="hmk_live_9Zf1…wxyz",
+            key_prefix="hm_billing_9Zf1",
             key_hash="b" * 64,
             created_by_user_id=uuid4(),
             created_at=1700000000,
@@ -189,9 +210,9 @@ class TestApiKey:
         revoker_id = uuid4()
         key = ApiKey(
             id=uuid4(),
-            tenant_id=uuid4(),
+            project_id=uuid4(),
             name="old-ci",
-            key_prefix="hmk_live_3Aa2…defg",
+            key_prefix="hm_web_3Aa2",
             key_hash="c" * 64,
             created_by_user_id=uuid4(),
             created_at=1700000000,
@@ -207,7 +228,7 @@ class TestAgentLearning:
     def test_create_with_category(self) -> None:
         learning = AgentLearning(
             id=uuid4(),
-            tenant_id=uuid4(),
+            hive_id=uuid4(),
             agent_id=uuid4(),
             content="When ORM errors appear, redirect to the data-layer agent",
             active=True,
@@ -222,7 +243,7 @@ class TestAgentLearning:
     def test_create_without_optional_fields(self) -> None:
         learning = AgentLearning(
             id=uuid4(),
-            tenant_id=uuid4(),
+            hive_id=uuid4(),
             agent_id=uuid4(),
             content="Memory leak pattern detected in connection pool",
             active=True,
@@ -237,7 +258,7 @@ class TestTicket:
     def test_create_minimal(self) -> None:
         ticket = Ticket(
             id=uuid4(),
-            tenant_id=uuid4(),
+            hive_id=uuid4(),
             project_id=uuid4(),
             created_by_agent_id=uuid4(),
             ticket_type=TicketType.BUG,
@@ -257,7 +278,7 @@ class TestTicket:
         approver_id = uuid4()
         ticket = Ticket(
             id=uuid4(),
-            tenant_id=uuid4(),
+            hive_id=uuid4(),
             project_id=uuid4(),
             created_by_agent_id=uuid4(),
             ticket_type=TicketType.TASK,
@@ -278,7 +299,7 @@ class TestNegotiation:
     def test_agent_to_agent(self) -> None:
         negotiation = Negotiation(
             id=uuid4(),
-            tenant_id=uuid4(),
+            hive_id=uuid4(),
             ticket_id=uuid4(),
             action=NegotiationAction.SUBMITTED,
             message="Detected recurring OOM errors in the web app",
@@ -292,7 +313,7 @@ class TestNegotiation:
     def test_agent_to_human(self) -> None:
         negotiation = Negotiation(
             id=uuid4(),
-            tenant_id=uuid4(),
+            hive_id=uuid4(),
             ticket_id=uuid4(),
             action=NegotiationAction.APPROVAL_REQUESTED,
             message="PR #42 is ready for merge. Requesting approval.",
@@ -307,7 +328,7 @@ class TestNegotiation:
     def test_human_to_agent(self) -> None:
         negotiation = Negotiation(
             id=uuid4(),
-            tenant_id=uuid4(),
+            hive_id=uuid4(),
             ticket_id=uuid4(),
             action=NegotiationAction.APPROVED,
             message="Looks good, approved for merge.",
@@ -320,7 +341,7 @@ class TestNegotiation:
     def test_metadata_defaults_to_empty_dict(self) -> None:
         n1 = Negotiation(
             id=uuid4(),
-            tenant_id=uuid4(),
+            hive_id=uuid4(),
             ticket_id=uuid4(),
             action=NegotiationAction.ACCEPTED,
             message="Accepted",
@@ -330,7 +351,7 @@ class TestNegotiation:
         )
         n2 = Negotiation(
             id=uuid4(),
-            tenant_id=uuid4(),
+            hive_id=uuid4(),
             ticket_id=uuid4(),
             action=NegotiationAction.ACCEPTED,
             message="Accepted",
@@ -345,7 +366,7 @@ class TestTicketHistory:
     def test_create_agent_action(self) -> None:
         history = TicketHistory(
             id=uuid4(),
-            tenant_id=uuid4(),
+            hive_id=uuid4(),
             ticket_id=uuid4(),
             field_changed="status",
             created_at=1700000000,
@@ -358,7 +379,7 @@ class TestTicketHistory:
     def test_create_human_action(self) -> None:
         history = TicketHistory(
             id=uuid4(),
-            tenant_id=uuid4(),
+            hive_id=uuid4(),
             ticket_id=uuid4(),
             field_changed="status",
             created_at=1700000000,
@@ -373,9 +394,9 @@ class TestInvite:
     def test_create_minimal(self) -> None:
         invite = Invite(
             id=uuid4(),
-            tenant_id=uuid4(),
+            hive_id=uuid4(),
             email="alice@acme.com",
-            role=UserRole.MEMBER,
+            role=HiveMemberRole.MEMBER,
             token="opaque-token-abc",
             status=InviteStatus.PENDING,
             created_by_user_id=uuid4(),
@@ -390,9 +411,9 @@ class TestInvite:
     def test_create_accepted(self) -> None:
         invite = Invite(
             id=uuid4(),
-            tenant_id=uuid4(),
+            hive_id=uuid4(),
             email="bob@acme.com",
-            role=UserRole.ADMIN,
+            role=HiveMemberRole.ADMIN,
             token="opaque-token-xyz",
             status=InviteStatus.ACCEPTED,
             created_by_user_id=uuid4(),

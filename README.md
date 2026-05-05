@@ -8,8 +8,8 @@ This is a lightweight library with no database dependencies. It defines the comm
 
 | Enum | Values |
 |------|--------|
-| `TenantStatus` | active, suspended, deleted |
-| `UserRole` | owner, admin, member |
+| `HiveStatus` | active, suspended, deleted |
+| `HiveMemberRole` | owner, admin, member |
 | `UserStatus` | active, disabled |
 | `ProjectStatus` | active, archived |
 | `AgentStatus` | active, paused, disabled |
@@ -22,7 +22,7 @@ This is a lightweight library with no database dependencies. It defines the comm
 
 ## Models
 
-`Tenant`, `User`, `ApiKey`, `Project`, `Agent`, `AgentLearning`, `Ticket`, `Negotiation`, `TicketHistory`, `Invite`
+`Hive`, `HiveMember`, `User`, `ApiKey`, `Project`, `Agent`, `AgentLearning`, `Ticket`, `Negotiation`, `TicketHistory`, `Invite`
 
 All models are Python dataclasses. UUID primary keys, BIGINT unix timestamps for all date/time fields.
 
@@ -41,7 +41,7 @@ from hivemake_models import Ticket, TicketStatus, TicketPriority
 
 ticket = Ticket(
     id="...",
-    tenant_id="...",
+    hive_id="...",
     project_id="...",
     created_by_agent_id="...",
     ticket_type="bug",

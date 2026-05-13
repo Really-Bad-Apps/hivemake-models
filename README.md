@@ -28,10 +28,8 @@ All models are Python dataclasses. UUID primary keys, BIGINT unix timestamps for
 
 ## Installation
 
-Private repository — requires a GitHub personal access token:
-
 ```bash
-pip install "hivemake-models @ git+https://${CR_PAT}@github.com/Really-Bad-Apps/hivemake-models.git"
+pip install "hivemake-models @ git+https://github.com/Really-Bad-Apps/hivemake-models.git"
 ```
 
 ## Usage
@@ -67,4 +65,4 @@ Requires Python 3.12+.
 
 ## License
 
-Proprietary
+[O'Saasy](https://osaasy.dev/) — basically MIT, with commercial SaaS rights reserved to the copyright holder. See [`LICENSE`](LICENSE).

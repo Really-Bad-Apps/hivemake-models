@@ -106,13 +106,14 @@ class TestNegotiationAction:
         assert NegotiationAction.REDIRECTED == "redirected"
         assert NegotiationAction.INFO_REQUESTED == "info_requested"
         assert NegotiationAction.INFO_PROVIDED == "info_provided"
+        assert NegotiationAction.RESOLVED == "resolved"
         assert NegotiationAction.APPROVAL_REQUESTED == "approval_requested"
         assert NegotiationAction.APPROVED == "approved"
         assert NegotiationAction.DENIED == "denied"
         assert NegotiationAction.REVISION_REQUESTED == "revision_requested"
 
     def test_member_count(self) -> None:
-        assert len(NegotiationAction) == 10
+        assert len(NegotiationAction) == 11
 
 
 class TestLearningCategory:

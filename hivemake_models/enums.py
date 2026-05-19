@@ -61,6 +61,7 @@ class NegotiationAction(StrEnum):
     REDIRECTED = "redirected"
     INFO_REQUESTED = "info_requested"
     INFO_PROVIDED = "info_provided"
+    RESOLVED = "resolved"
     APPROVAL_REQUESTED = "approval_requested"
     APPROVED = "approved"
     DENIED = "denied"

@@ -25,7 +25,6 @@ class Hive:
     status: HiveStatus
     created_at: int
     updated_at: int
-    notifications_channel_id: Optional[str] = None
 
 
 @dataclass
@@ -167,3 +166,54 @@ class Invite:
     updated_at: int
     accepted_at: Optional[int] = None
     accepted_by_aegis_user_id: Optional[int] = None
+
+
+@dataclass
+class NotificationTarget:
+    """
+    A single Telegram destination: a chat, optionally narrowed to a
+    supergroup topic. Source-agnostic by design — the dispatcher doesn't
+    care whether the target came from a hive activity-feed subscription or
+    from a user's linked DM chat. chat_id is a string to match how chat ids
+    are stored elsewhere and the byteforge-telegram send API (which takes a
+    str chat_id), sidestepping int64 precision concerns.
+    """
+    chat_id: str
+    topic_id: Optional[int] = None
+
+
+@dataclass
+class HiveTelegramSubscription:
+    """One Telegram destination a hive's activity feed fans out to. A hive
+    may have many (chat_id, topic_id) pairs; each row can be toggled off
+    without deleting it."""
+    id: UUID
+    hive_id: UUID
+    chat_id: str
+    created_at: int
+    topic_id: Optional[int] = None
+    label: Optional[str] = None
+    enabled: bool = True
+
+
+@dataclass
+class HiveTelegramLinkToken:
+    """Single-use, short-TTL code minted when an admin subscribes a hive to
+    Telegram. Consumed by the bot's /link_hive <code> command, which reads
+    the chat_id + topic_id from the message metadata."""
+    token: str
+    hive_id: UUID
+    created_by: UUID
+    created_at: int
+    expires_at: int
+
+
+@dataclass
+class UserTelegramLinkToken:
+    """One-time deep-link token binding a user to their Telegram DM chat.
+    Embedded in t.me/<bot>?start=link_<token> and consumed by the bot's
+    /start link_<token> handler."""
+    token: str
+    user_id: UUID
+    created_at: int
+    expires_at: int

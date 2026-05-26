@@ -17,12 +17,16 @@ from hivemake_models.models import (
     ApiKey,
     Hive,
     HiveMember,
+    HiveTelegramLinkToken,
+    HiveTelegramSubscription,
     Invite,
     Negotiation,
+    NotificationTarget,
     Project,
     Ticket,
     TicketHistory,
     User,
+    UserTelegramLinkToken,
 )
 
 __all__ = [
@@ -44,10 +48,14 @@ __all__ = [
     "ApiKey",
     "Hive",
     "HiveMember",
+    "HiveTelegramLinkToken",
+    "HiveTelegramSubscription",
     "Invite",
     "Negotiation",
+    "NotificationTarget",
     "Project",
     "Ticket",
     "TicketHistory",
     "User",
+    "UserTelegramLinkToken",
 ]

@@ -19,12 +19,16 @@ from hivemake_models.models import (
     ApiKey,
     Hive,
     HiveMember,
+    HiveTelegramLinkToken,
+    HiveTelegramSubscription,
     Invite,
     Negotiation,
+    NotificationTarget,
     Project,
     Ticket,
     TicketHistory,
     User,
+    UserTelegramLinkToken,
 )
 
 
@@ -41,19 +45,6 @@ class TestHive:
         assert hive.name == "Acme Corp"
         assert hive.status == HiveStatus.ACTIVE
         assert hive.status == "active"
-        assert hive.notifications_channel_id is None
-
-    def test_create_with_notifications_channel(self) -> None:
-        hive = Hive(
-            id=uuid4(),
-            name="Acme Corp",
-            slug="acme-corp",
-            status=HiveStatus.ACTIVE,
-            created_at=1700000000,
-            updated_at=1700000000,
-            notifications_channel_id="-1001234567890",
-        )
-        assert hive.notifications_channel_id == "-1001234567890"
 
 
 class TestUser:
@@ -425,3 +416,66 @@ class TestInvite:
         )
         assert invite.status == InviteStatus.ACCEPTED
         assert invite.accepted_by_aegis_user_id == 42
+
+
+class TestNotificationTarget:
+    def test_main_feed_default(self) -> None:
+        target = NotificationTarget(chat_id="-1001234567890")
+        assert target.chat_id == "-1001234567890"
+        assert target.topic_id is None
+
+    def test_with_topic(self) -> None:
+        target = NotificationTarget(chat_id="-1001234567890", topic_id=42)
+        assert target.topic_id == 42
+
+
+class TestHiveTelegramSubscription:
+    def test_create_minimal(self) -> None:
+        sub = HiveTelegramSubscription(
+            id=uuid4(),
+            hive_id=uuid4(),
+            chat_id="-1001234567890",
+            created_at=1700000000,
+        )
+        assert sub.topic_id is None
+        assert sub.label is None
+        assert sub.enabled is True
+
+    def test_create_full(self) -> None:
+        sub = HiveTelegramSubscription(
+            id=uuid4(),
+            hive_id=uuid4(),
+            chat_id="-1001234567890",
+            created_at=1700000000,
+            topic_id=7,
+            label="Hive Alpha activity feed",
+            enabled=False,
+        )
+        assert sub.topic_id == 7
+        assert sub.label == "Hive Alpha activity feed"
+        assert sub.enabled is False
+
+
+class TestHiveTelegramLinkToken:
+    def test_create(self) -> None:
+        token = HiveTelegramLinkToken(
+            token="abc123",
+            hive_id=uuid4(),
+            created_by=uuid4(),
+            created_at=1700000000,
+            expires_at=1700000600,
+        )
+        assert token.token == "abc123"
+        assert token.expires_at - token.created_at == 600
+
+
+class TestUserTelegramLinkToken:
+    def test_create(self) -> None:
+        token = UserTelegramLinkToken(
+            token="xyz789",
+            user_id=uuid4(),
+            created_at=1700000000,
+            expires_at=1700000600,
+        )
+        assert token.token == "xyz789"
+        assert token.user_id is not None

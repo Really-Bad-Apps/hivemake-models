@@ -17,6 +17,7 @@ from hivemake_models.models import (
     Agent,
     AgentLearning,
     ApiKey,
+    ApprovalActor,
     Hive,
     HiveMember,
     HiveTelegramLinkToken,
@@ -479,3 +480,22 @@ class TestUserTelegramLinkToken:
         )
         assert token.token == "xyz789"
         assert token.user_id is not None
+
+
+class TestApprovalActor:
+    def test_agent_actor(self) -> None:
+        agent_id = uuid4()
+        actor = ApprovalActor(agent_id=agent_id)
+        assert actor.agent_id == agent_id
+        assert actor.user_id is None
+
+    def test_user_actor(self) -> None:
+        user_id = uuid4()
+        actor = ApprovalActor(user_id=user_id)
+        assert actor.user_id == user_id
+        assert actor.agent_id is None
+
+    def test_empty_default(self) -> None:
+        actor = ApprovalActor()
+        assert actor.agent_id is None
+        assert actor.user_id is None

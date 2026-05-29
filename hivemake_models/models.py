@@ -140,6 +140,16 @@ class Negotiation:
 
 
 @dataclass
+class ApprovalActor:
+    """Who is acting on an approval gate — an agent (via API key) or a human
+    user (via Aegis). Exactly one of agent_id / user_id is set; the service
+    that consumes it enforces that invariant and matches it against the
+    ticket's pending_approval_from_{agent,user}_id."""
+    agent_id: Optional[UUID] = None
+    user_id: Optional[UUID] = None
+
+
+@dataclass
 class TicketHistory:
     id: UUID
     hive_id: UUID

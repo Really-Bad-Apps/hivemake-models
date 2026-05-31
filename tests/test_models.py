@@ -16,8 +16,11 @@ from hivemake_models.enums import (
 from hivemake_models.models import (
     Agent,
     AgentLearning,
+    AgentMatch,
     ApiKey,
     ApprovalActor,
+    ApprovalTarget,
+    GatedAction,
     Hive,
     HiveMember,
     HiveTelegramLinkToken,
@@ -165,6 +168,88 @@ class TestAgent:
         )
         assert len(agent.config["gated_actions"]) == 1
         assert agent.config["redirect_rules"]["max_redirects"] == 3
+
+    def test_default_registered_at_is_none(self) -> None:
+        agent = Agent(
+            id=uuid4(),
+            hive_id=uuid4(),
+            project_id=uuid4(),
+            name="Ghost Agent",
+            status=AgentStatus.ACTIVE,
+            created_at=1700000000,
+            updated_at=1700000000,
+        )
+        assert agent.registered_at is None
+
+    def test_registered_at_set(self) -> None:
+        agent = Agent(
+            id=uuid4(),
+            hive_id=uuid4(),
+            project_id=uuid4(),
+            name="Registered Agent",
+            status=AgentStatus.ACTIVE,
+            created_at=1700000000,
+            updated_at=1700000005,
+            registered_at=1700000005,
+        )
+        assert agent.registered_at == 1700000005
+
+
+class TestAgentMatch:
+    def test_create(self) -> None:
+        match = AgentMatch(
+            agent_id=uuid4(),
+            project_id=uuid4(),
+            name="Boudica",
+            description="Frontend release engineer",
+            score=0.82,
+        )
+        assert match.name == "Boudica"
+        assert match.score == 0.82
+
+    def test_score_zero(self) -> None:
+        match = AgentMatch(
+            agent_id=uuid4(),
+            project_id=uuid4(),
+            name="Argus",
+            description="Log watcher",
+            score=0.0,
+        )
+        assert match.score == 0.0
+
+
+class TestApprovalTarget:
+    def test_agent_target(self) -> None:
+        approver = uuid4()
+        target = ApprovalTarget(agent_id=approver)
+        assert target.agent_id == approver
+        assert target.user_id is None
+
+    def test_user_target(self) -> None:
+        approver = uuid4()
+        target = ApprovalTarget(user_id=approver)
+        assert target.user_id == approver
+        assert target.agent_id is None
+
+
+class TestGatedAction:
+    def test_create_with_user_approver(self) -> None:
+        approver = uuid4()
+        gated = GatedAction(
+            action="deploy",
+            approval_target=ApprovalTarget(user_id=approver),
+        )
+        assert gated.action == "deploy"
+        assert gated.approval_target.user_id == approver
+
+    def test_create_with_agent_approver(self) -> None:
+        approver = uuid4()
+        gated = GatedAction(
+            action="merge_pr",
+            approval_target=ApprovalTarget(agent_id=approver),
+        )
+        assert gated.action == "merge_pr"
+        assert gated.approval_target.agent_id == approver
 
 
 class TestApiKey:

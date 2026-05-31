@@ -89,6 +89,20 @@ class Agent:
     updated_at: int
     description: Optional[str] = None
     config: dict = field(default_factory=dict)
+    registered_at: Optional[int] = None
+
+
+@dataclass
+class AgentMatch:
+    """One semantic-discovery hit. Score is cosine similarity in [-1, 1];
+    1.0 = identical direction (best match). Returned by discover ordered by
+    descending score. The agent's own row is excluded by the discover
+    service, not by this model."""
+    agent_id: UUID
+    project_id: UUID
+    name: str
+    description: str
+    score: float
 
 
 @dataclass
@@ -147,6 +161,28 @@ class ApprovalActor:
     ticket's pending_approval_from_{agent,user}_id."""
     agent_id: Optional[UUID] = None
     user_id: Optional[UUID] = None
+
+
+@dataclass
+class ApprovalTarget:
+    """Who is configured to approve a gated action — an agent xor a human user.
+    Exactly one of agent_id / user_id is set. Mirrors ApprovalActor's
+    xor invariant but for the configured destination (vs. the actor responding)."""
+    agent_id: Optional[UUID] = None
+    user_id: Optional[UUID] = None
+
+
+@dataclass
+class GatedAction:
+    """One entry from an agent's `config["gated_actions"]`.
+
+    The contract an agent inherits from its owner: when about to execute the
+    domain action `action` (e.g., "merge_pr", "deploy"), the agent must first
+    call `request_approval(action_name=action)` and wait for the configured
+    `approval_target` to approve/deny/revise. Cooperative — HiveMake doesn't
+    execute the action; the audit trail is the negotiation history."""
+    action: str
+    approval_target: ApprovalTarget
 
 
 @dataclass

@@ -14,8 +14,11 @@ from hivemake_models.enums import (
 from hivemake_models.models import (
     Agent,
     AgentLearning,
+    AgentMatch,
     ApiKey,
     ApprovalActor,
+    ApprovalTarget,
+    GatedAction,
     Hive,
     HiveMember,
     HiveTelegramLinkToken,
@@ -46,8 +49,11 @@ __all__ = [
     # Models
     "Agent",
     "AgentLearning",
+    "AgentMatch",
     "ApiKey",
     "ApprovalActor",
+    "ApprovalTarget",
+    "GatedAction",
     "Hive",
     "HiveMember",
     "HiveTelegramLinkToken",

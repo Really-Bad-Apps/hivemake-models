@@ -48,6 +48,7 @@ class TicketStatus(StrEnum):
     ACCEPTED = "accepted"
     IN_PROGRESS = "in_progress"
     PENDING_APPROVAL = "pending_approval"
+    ESCALATED = "escalated"
     RESOLVED = "resolved"
     CLOSED = "closed"
     REJECTED = "rejected"
@@ -66,6 +67,7 @@ class NegotiationAction(StrEnum):
     APPROVED = "approved"
     DENIED = "denied"
     REVISION_REQUESTED = "revision_requested"
+    ESCALATED = "escalated"
 
 
 class LearningCategory(StrEnum):

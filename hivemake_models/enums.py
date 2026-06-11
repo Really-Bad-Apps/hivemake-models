@@ -51,6 +51,7 @@ class TicketStatus(StrEnum):
     ESCALATED = "escalated"
     RESOLVED = "resolved"
     CLOSED = "closed"
+    WITHDRAWN = "withdrawn"
     REJECTED = "rejected"
     DENIED = "denied"
 
@@ -63,6 +64,8 @@ class NegotiationAction(StrEnum):
     INFO_REQUESTED = "info_requested"
     INFO_PROVIDED = "info_provided"
     RESOLVED = "resolved"
+    CLOSED = "closed"
+    WITHDRAWN = "withdrawn"
     APPROVAL_REQUESTED = "approval_requested"
     APPROVED = "approved"
     DENIED = "denied"

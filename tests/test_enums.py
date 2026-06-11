@@ -92,11 +92,12 @@ class TestTicketStatus:
         assert TicketStatus.ESCALATED == "escalated"
         assert TicketStatus.RESOLVED == "resolved"
         assert TicketStatus.CLOSED == "closed"
+        assert TicketStatus.WITHDRAWN == "withdrawn"
         assert TicketStatus.REJECTED == "rejected"
         assert TicketStatus.DENIED == "denied"
 
     def test_member_count(self) -> None:
-        assert len(TicketStatus) == 10
+        assert len(TicketStatus) == 11
 
 
 class TestNegotiationAction:
@@ -108,6 +109,8 @@ class TestNegotiationAction:
         assert NegotiationAction.INFO_REQUESTED == "info_requested"
         assert NegotiationAction.INFO_PROVIDED == "info_provided"
         assert NegotiationAction.RESOLVED == "resolved"
+        assert NegotiationAction.CLOSED == "closed"
+        assert NegotiationAction.WITHDRAWN == "withdrawn"
         assert NegotiationAction.APPROVAL_REQUESTED == "approval_requested"
         assert NegotiationAction.APPROVED == "approved"
         assert NegotiationAction.DENIED == "denied"
@@ -115,7 +118,7 @@ class TestNegotiationAction:
         assert NegotiationAction.ESCALATED == "escalated"
 
     def test_member_count(self) -> None:
-        assert len(NegotiationAction) == 12
+        assert len(NegotiationAction) == 14
 
 
 class TestLearningCategory:

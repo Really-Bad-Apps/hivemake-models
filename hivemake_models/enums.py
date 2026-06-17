@@ -64,6 +64,7 @@ class NegotiationAction(StrEnum):
     INFO_REQUESTED = "info_requested"
     INFO_PROVIDED = "info_provided"
     RESOLVED = "resolved"
+    REOPENED = "reopened"
     CLOSED = "closed"
     WITHDRAWN = "withdrawn"
     APPROVAL_REQUESTED = "approval_requested"

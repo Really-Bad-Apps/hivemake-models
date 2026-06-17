@@ -109,6 +109,7 @@ class TestNegotiationAction:
         assert NegotiationAction.INFO_REQUESTED == "info_requested"
         assert NegotiationAction.INFO_PROVIDED == "info_provided"
         assert NegotiationAction.RESOLVED == "resolved"
+        assert NegotiationAction.REOPENED == "reopened"
         assert NegotiationAction.CLOSED == "closed"
         assert NegotiationAction.WITHDRAWN == "withdrawn"
         assert NegotiationAction.APPROVAL_REQUESTED == "approval_requested"
@@ -118,7 +119,7 @@ class TestNegotiationAction:
         assert NegotiationAction.ESCALATED == "escalated"
 
     def test_member_count(self) -> None:
-        assert len(NegotiationAction) == 14
+        assert len(NegotiationAction) == 15
 
 
 class TestLearningCategory:

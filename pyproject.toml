@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "hivemake-models"
-version = "0.4.7"
+version = "0.4.8"
 description = "Shared data models and enums for HiveMake.ai"
 requires-python = ">=3.12"
 license = {text = "O'Saasy License"}

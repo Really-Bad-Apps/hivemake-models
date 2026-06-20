@@ -18,9 +18,7 @@ from hivemake_models.models import (
     AgentLearning,
     AgentMatch,
     ApiKey,
-    ApprovalActor,
-    ApprovalTarget,
-    GatedAction,
+    EscalationActor,
     Hive,
     HiveMember,
     HiveTelegramLinkToken,
@@ -147,15 +145,7 @@ class TestAgent:
         assert agent.description is None
 
     def test_create_with_config(self) -> None:
-        config = {
-            "gated_actions": [
-                {
-                    "action": "merge_pr",
-                    "approval_target": {"agent_id": str(uuid4())},
-                }
-            ],
-            "redirect_rules": {"max_redirects": 3},
-        }
+        config = {"redirect_rules": {"max_redirects": 3}}
         agent = Agent(
             id=uuid4(),
             hive_id=uuid4(),
@@ -166,7 +156,6 @@ class TestAgent:
             updated_at=1700000000,
             config=config,
         )
-        assert len(agent.config["gated_actions"]) == 1
         assert agent.config["redirect_rules"]["max_redirects"] == 3
 
     def test_default_registered_at_is_none(self) -> None:
@@ -216,40 +205,6 @@ class TestAgentMatch:
             score=0.0,
         )
         assert match.score == 0.0
-
-
-class TestApprovalTarget:
-    def test_agent_target(self) -> None:
-        approver = uuid4()
-        target = ApprovalTarget(agent_id=approver)
-        assert target.agent_id == approver
-        assert target.user_id is None
-
-    def test_user_target(self) -> None:
-        approver = uuid4()
-        target = ApprovalTarget(user_id=approver)
-        assert target.user_id == approver
-        assert target.agent_id is None
-
-
-class TestGatedAction:
-    def test_create_with_user_approver(self) -> None:
-        approver = uuid4()
-        gated = GatedAction(
-            action="deploy",
-            approval_target=ApprovalTarget(user_id=approver),
-        )
-        assert gated.action == "deploy"
-        assert gated.approval_target.user_id == approver
-
-    def test_create_with_agent_approver(self) -> None:
-        approver = uuid4()
-        gated = GatedAction(
-            action="merge_pr",
-            approval_target=ApprovalTarget(agent_id=approver),
-        )
-        assert gated.action == "merge_pr"
-        assert gated.approval_target.agent_id == approver
 
 
 class TestApiKey:
@@ -347,29 +302,7 @@ class TestTicket:
             updated_at=1700000000,
         )
         assert ticket.assigned_agent_id is None
-        assert ticket.pending_approval_from_agent_id is None
-        assert ticket.pending_approval_from_user_id is None
         assert ticket.resolution is None
-
-    def test_create_with_approval_fields(self) -> None:
-        approver_id = uuid4()
-        ticket = Ticket(
-            id=uuid4(),
-            hive_id=uuid4(),
-            project_id=uuid4(),
-            created_by_agent_id=uuid4(),
-            ticket_type=TicketType.TASK,
-            title="Deploy v2.1",
-            description="Deploy the latest release",
-            priority=TicketPriority.MEDIUM,
-            status=TicketStatus.PENDING_APPROVAL,
-            created_at=1700000000,
-            updated_at=1700000000,
-            assigned_agent_id=uuid4(),
-            pending_approval_from_user_id=approver_id,
-        )
-        assert ticket.status == TicketStatus.PENDING_APPROVAL
-        assert ticket.pending_approval_from_user_id == approver_id
 
 
 class TestNegotiation:
@@ -392,8 +325,8 @@ class TestNegotiation:
             id=uuid4(),
             hive_id=uuid4(),
             ticket_id=uuid4(),
-            action=NegotiationAction.APPROVAL_REQUESTED,
-            message="PR #42 is ready for merge. Requesting approval.",
+            action=NegotiationAction.ESCALATED,
+            message="Stuck on merging PR #42 — need a human to weigh in.",
             created_at=1700000000,
             from_agent_id=uuid4(),
             to_user_id=uuid4(),
@@ -407,8 +340,8 @@ class TestNegotiation:
             id=uuid4(),
             hive_id=uuid4(),
             ticket_id=uuid4(),
-            action=NegotiationAction.APPROVED,
-            message="Looks good, approved for merge.",
+            action=NegotiationAction.INFO_PROVIDED,
+            message="Here's the missing context — proceed.",
             created_at=1700000000,
             from_user_id=uuid4(),
             to_agent_id=uuid4(),
@@ -461,7 +394,7 @@ class TestTicketHistory:
             field_changed="status",
             created_at=1700000000,
             actor_user_id=uuid4(),
-            old_value="pending_approval",
+            old_value="escalated",
             new_value="resolved",
         )
         assert history.actor_agent_id is None
@@ -567,20 +500,20 @@ class TestUserTelegramLinkToken:
         assert token.user_id is not None
 
 
-class TestApprovalActor:
+class TestEscalationActor:
     def test_agent_actor(self) -> None:
         agent_id = uuid4()
-        actor = ApprovalActor(agent_id=agent_id)
+        actor = EscalationActor(agent_id=agent_id)
         assert actor.agent_id == agent_id
         assert actor.user_id is None
 
     def test_user_actor(self) -> None:
         user_id = uuid4()
-        actor = ApprovalActor(user_id=user_id)
+        actor = EscalationActor(user_id=user_id)
         assert actor.user_id == user_id
         assert actor.agent_id is None
 
     def test_empty_default(self) -> None:
-        actor = ApprovalActor()
+        actor = EscalationActor()
         assert actor.agent_id is None
         assert actor.user_id is None

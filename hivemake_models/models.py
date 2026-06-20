@@ -133,8 +133,6 @@ class Ticket:
     updated_at: int
     requested_by_user_id: Optional[UUID] = None
     assigned_agent_id: Optional[UUID] = None
-    pending_approval_from_agent_id: Optional[UUID] = None
-    pending_approval_from_user_id: Optional[UUID] = None
     resolution: Optional[str] = None
 
 
@@ -154,35 +152,14 @@ class Negotiation:
 
 
 @dataclass
-class ApprovalActor:
-    """Who is acting on an approval gate — an agent (via API key) or a human
-    user (via Aegis). Exactly one of agent_id / user_id is set; the service
-    that consumes it enforces that invariant and matches it against the
-    ticket's pending_approval_from_{agent,user}_id."""
+class EscalationActor:
+    """Who is acting on an escalated ticket — a human user (via Aegis) or an
+    agent (via API key). Used by the escalation-recovery endpoints where a
+    hive member resolves/rejects/redirects/provides_info on an escalated
+    ticket on the original assignee's behalf. Exactly one of agent_id /
+    user_id is set; the service that consumes it enforces that invariant."""
     agent_id: Optional[UUID] = None
     user_id: Optional[UUID] = None
-
-
-@dataclass
-class ApprovalTarget:
-    """Who is configured to approve a gated action — an agent xor a human user.
-    Exactly one of agent_id / user_id is set. Mirrors ApprovalActor's
-    xor invariant but for the configured destination (vs. the actor responding)."""
-    agent_id: Optional[UUID] = None
-    user_id: Optional[UUID] = None
-
-
-@dataclass
-class GatedAction:
-    """One entry from an agent's `config["gated_actions"]`.
-
-    The contract an agent inherits from its owner: when about to execute the
-    domain action `action` (e.g., "merge_pr", "deploy"), the agent must first
-    call `request_approval(action_name=action)` and wait for the configured
-    `approval_target` to approve/deny/revise. Cooperative — HiveMake doesn't
-    execute the action; the audit trail is the negotiation history."""
-    action: str
-    approval_target: ApprovalTarget
 
 
 @dataclass

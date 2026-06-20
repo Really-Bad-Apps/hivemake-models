@@ -47,13 +47,11 @@ class TicketStatus(StrEnum):
     TRIAGING = "triaging"
     ACCEPTED = "accepted"
     IN_PROGRESS = "in_progress"
-    PENDING_APPROVAL = "pending_approval"
     ESCALATED = "escalated"
     RESOLVED = "resolved"
     CLOSED = "closed"
     WITHDRAWN = "withdrawn"
     REJECTED = "rejected"
-    DENIED = "denied"
 
 
 class NegotiationAction(StrEnum):
@@ -67,10 +65,6 @@ class NegotiationAction(StrEnum):
     REOPENED = "reopened"
     CLOSED = "closed"
     WITHDRAWN = "withdrawn"
-    APPROVAL_REQUESTED = "approval_requested"
-    APPROVED = "approved"
-    DENIED = "denied"
-    REVISION_REQUESTED = "revision_requested"
     ESCALATED = "escalated"
 
 

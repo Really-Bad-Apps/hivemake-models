@@ -15,8 +15,8 @@ This is a lightweight library with no database dependencies. It defines the comm
 | `AgentStatus` | active, paused, disabled |
 | `TicketType` | bug, feature_request, task |
 | `TicketPriority` | critical, high, medium, low |
-| `TicketStatus` | open, triaging, accepted, in_progress, pending_approval, escalated, resolved, closed, rejected, denied |
-| `NegotiationAction` | submitted, accepted, rejected, redirected, info_requested, info_provided, resolved, approval_requested, approved, denied, revision_requested, escalated |
+| `TicketStatus` | open, triaging, accepted, in_progress, escalated, resolved, closed, withdrawn, rejected |
+| `NegotiationAction` | submitted, accepted, rejected, redirected, info_requested, info_provided, resolved, reopened, closed, withdrawn, escalated |
 | `LearningCategory` | routing, error_pattern, domain_knowledge |
 | `InviteStatus` | pending, accepted, revoked, expired |
 

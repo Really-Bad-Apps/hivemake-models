@@ -47,6 +47,7 @@ class TicketStatus(StrEnum):
     TRIAGING = "triaging"
     ACCEPTED = "accepted"
     IN_PROGRESS = "in_progress"
+    INFO_REQUESTED = "info_requested"
     ESCALATED = "escalated"
     RESOLVED = "resolved"
     CLOSED = "closed"

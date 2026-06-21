@@ -88,6 +88,7 @@ class TestTicketStatus:
         assert TicketStatus.TRIAGING == "triaging"
         assert TicketStatus.ACCEPTED == "accepted"
         assert TicketStatus.IN_PROGRESS == "in_progress"
+        assert TicketStatus.INFO_REQUESTED == "info_requested"
         assert TicketStatus.ESCALATED == "escalated"
         assert TicketStatus.RESOLVED == "resolved"
         assert TicketStatus.CLOSED == "closed"
@@ -95,7 +96,7 @@ class TestTicketStatus:
         assert TicketStatus.REJECTED == "rejected"
 
     def test_member_count(self) -> None:
-        assert len(TicketStatus) == 9
+        assert len(TicketStatus) == 10
 
 
 class TestNegotiationAction:

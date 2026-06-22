@@ -7,6 +7,27 @@ class HiveStatus(StrEnum):
     DELETED = "deleted"
 
 
+class HiveVisibility(StrEnum):
+    """Cross-hive routing/discovery axis (Slice 2 of hive-visibility design).
+
+    Same-axis design: routing visibility == discovery visibility. A hive
+    that is invisible to a peer is also unroutable from that peer.
+
+    - CLOSED: invisible and unroutable from every other hive. Default.
+    - OWNER_SCOPE: visible/routable from other hives owned by the same
+      user. Lets a single owner federate their own hives without
+      exposing them to the wider org/network.
+    - OPEN: visible/routable from any hive. Use only when the hive is
+      intended to accept inbound traffic from strangers.
+
+    Slice 2 stores the field; Slice 3 enforces it in discover_agents
+    and file_ticket routing.
+    """
+    CLOSED = "closed"
+    OWNER_SCOPE = "owner_scope"
+    OPEN = "open"
+
+
 class HiveMemberRole(StrEnum):
     OWNER = "owner"
     ADMIN = "admin"

@@ -4,6 +4,7 @@ from hivemake_models.enums import (
     AgentStatus,
     HiveMemberRole,
     HiveStatus,
+    HiveVisibility,
     InviteStatus,
     LearningCategory,
     NegotiationAction,
@@ -47,6 +48,22 @@ class TestHive:
         assert hive.name == "Acme Corp"
         assert hive.status == HiveStatus.ACTIVE
         assert hive.status == "active"
+        # Safe default: a brand-new Hive is invisible to the rest of
+        # the network until its owner explicitly opens it up.
+        assert hive.visibility == HiveVisibility.CLOSED
+
+    def test_create_with_visibility(self) -> None:
+        hive = Hive(
+            id=uuid4(),
+            name="Acme Public",
+            slug="acme-public",
+            status=HiveStatus.ACTIVE,
+            created_at=1700000000,
+            updated_at=1700000000,
+            visibility=HiveVisibility.OPEN,
+        )
+        assert hive.visibility == HiveVisibility.OPEN
+        assert hive.visibility == "open"
 
 
 class TestUser:

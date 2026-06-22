@@ -6,6 +6,7 @@ from hivemake_models.enums import (
     AgentStatus,
     HiveMemberRole,
     HiveStatus,
+    HiveVisibility,
     InviteStatus,
     LearningCategory,
     NegotiationAction,
@@ -25,6 +26,7 @@ class Hive:
     status: HiveStatus
     created_at: int
     updated_at: int
+    visibility: HiveVisibility = HiveVisibility.CLOSED
 
 
 @dataclass

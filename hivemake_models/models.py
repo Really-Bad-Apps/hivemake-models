@@ -108,6 +108,29 @@ class AgentMatch:
 
 
 @dataclass
+class DiscoverAgentsResult:
+    """Result of `discover_agents` — wraps matches with diagnostic counts so
+    callers can distinguish three failure modes when `matches` is empty:
+
+      - visibility_blocked: `visible_hive_count == 1` (only the caller's own
+        hive is visible) AND `candidates_searched == 0`. The caller's hive
+        owner needs to bump cross-hive visibility (`owner_scope` / `open`)
+        on the relevant hives, or the target hive has no registered agents.
+      - no_candidates: `visible_hive_count > 1` but `candidates_searched == 0`.
+        Visible hives exist but contain no registered (non-caller) agents.
+      - threshold_filtered: `candidates_searched > 0` but `matches` is empty
+        after applying `threshold_used`. Lower `min_score` and retry.
+
+    Diagnostics are intentionally computed even on success — `candidates_searched`
+    > `len(matches)` tells the caller their threshold dropped some non-zero
+    number of below-threshold candidates, which is useful when tuning."""
+    matches: list[AgentMatch]
+    candidates_searched: int
+    threshold_used: float
+    visible_hive_count: int
+
+
+@dataclass
 class AgentLearning:
     id: UUID
     hive_id: UUID

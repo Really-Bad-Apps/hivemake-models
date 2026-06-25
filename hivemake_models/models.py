@@ -109,40 +109,62 @@ class AgentMatch:
 
 @dataclass
 class DiscoverAgentsResult:
-    """Result of `discover_agents` — wraps matches with diagnostic counts so
-    callers can distinguish three failure modes when `matches` is empty:
+    """Result of `discover_agents` — wraps matches with diagnostic counters
+    so callers can pinpoint why `matches` is empty without guessing.
 
-      - alone_or_visibility_blocked: `visible_hive_count == 1` AND
-        `candidates_searched == 0`. EITHER no registered peers exist in
-        the caller's own hive yet, OR the caller's hive can't see any
-        cross-hive peers (the relevant hives aren't `owner_scope` /
-        `open` for this caller). Without more state it's not possible to
-        tell which from the response alone — talk to the hive owner.
-      - no_candidates: `visible_hive_count > 1` but `candidates_searched == 0`.
-        Visible hives exist but contain no registered (non-caller) agents.
-      - threshold_filtered: `candidates_searched > 0` but `matches` is empty.
-        Some pool of agents existed; `threshold_used` rejected all of
-        them (or all of the top-`limit` by similarity, which is the same
-        thing in practice). Lower `min_score` and retry.
+    Failure-mode taxonomy (each bullet includes the `matches == []`
+    umbrella explicitly — the counters alone aren't enough to choose a
+    bucket because the same counter combination can describe a
+    successful search too):
+
+      - alone_or_visibility_blocked: `matches == []` AND
+        `visible_hive_count == 1` AND `pool_size == 0`. EITHER no
+        registered peers exist in the caller's own hive yet, OR the
+        caller's hive can't see any cross-hive peers (the relevant
+        hives aren't `owner_scope` / `open` for this caller). The
+        response can't disambiguate these two — talk to the hive owner.
+      - no_candidates: `matches == []` AND `visible_hive_count > 1` AND
+        `pool_size == 0`. Visible hives exist but contain no registered
+        (non-caller) agents.
+      - threshold_filtered: `matches == []` AND `pool_size > 0` AND
+        `threshold_dropped > 0`. Every candidate that made the
+        top-`limit` slice by similarity scored below `threshold_used`.
+        Lower `min_score` and retry — the new floor will recover up to
+        `threshold_dropped` more matches.
+      - pool_exists_but_query_misses: `matches == []` AND `pool_size > 0`
+        AND `threshold_dropped == 0`. Agents exist but none of them
+        landed in the top-`limit` AT ALL — the query embedding didn't
+        match anyone well. Rephrase the query, not the threshold.
+
+    Note that the same counter shapes can describe non-empty success
+    paths: e.g. `pool_size > 0 AND threshold_dropped > 0 AND len(matches) > 0`
+    is a routine result where the top-`limit` slice straddled the floor
+    (some passed, some didn't). The buckets above only diagnose the
+    empty-matches case.
 
     Field semantics:
-      - `candidates_searched` is the SIZE OF THE POOL: registered,
-        non-caller agents across every hive the caller can see. It's
-        independent of `limit`, `min_score`, and even the query
-        embedding — it would be the same for any query. Use it to
-        distinguish "nobody to match against" from "matches existed
-        but got filtered."
-      - `candidates_searched > len(matches)` does NOT necessarily mean
-        the threshold dropped someone. `limit` also caps `matches` —
-        a pool of 100 with the top-10 all above threshold yields
-        `candidates_searched=100, len(matches)=10` with zero threshold
-        rejections. To know if the threshold is biting, retry with a
-        lower `min_score` and see if `len(matches)` grows.
-      - `threshold_used` is the floor that WAS applied (after defaulting
-        — useful when you didn't pass `min_score` and want to know what
-        you got)."""
+      - `pool_size`: registered, non-caller agents across every hive
+        the caller can see. Independent of `limit`, `min_score`, and the
+        query embedding — same for any query at a given moment.
+      - `threshold_dropped`: of the top-`limit` slice by similarity, how
+        many fell below `threshold_used`. The directly-actionable
+        counter: >0 means a lower `min_score` would recover that many
+        more matches; 0 means the threshold isn't the bottleneck.
+        Capped at `limit` — if more than `limit` agents would fall
+        below the floor, only those that displaced into the top-`limit`
+        slice are counted.
+      - `threshold_used`: the floor that was applied (server default
+        when caller passed `min_score=None`, otherwise the caller's
+        value).
+      - `visible_hive_count`: hives the caller can see; always >=1
+        because the caller's own hive is always visible.
+
+    Note that `pool_size > len(matches)` does NOT prove the threshold
+    dropped someone. `limit` also caps `matches` — `threshold_dropped`
+    is the specific number that tells you about threshold effects."""
     matches: list[AgentMatch]
-    candidates_searched: int
+    pool_size: int
+    threshold_dropped: int
     threshold_used: float
     visible_hive_count: int
 

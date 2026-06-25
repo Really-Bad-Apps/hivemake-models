@@ -112,18 +112,35 @@ class DiscoverAgentsResult:
     """Result of `discover_agents` — wraps matches with diagnostic counts so
     callers can distinguish three failure modes when `matches` is empty:
 
-      - visibility_blocked: `visible_hive_count == 1` (only the caller's own
-        hive is visible) AND `candidates_searched == 0`. The caller's hive
-        owner needs to bump cross-hive visibility (`owner_scope` / `open`)
-        on the relevant hives, or the target hive has no registered agents.
+      - alone_or_visibility_blocked: `visible_hive_count == 1` AND
+        `candidates_searched == 0`. EITHER no registered peers exist in
+        the caller's own hive yet, OR the caller's hive can't see any
+        cross-hive peers (the relevant hives aren't `owner_scope` /
+        `open` for this caller). Without more state it's not possible to
+        tell which from the response alone — talk to the hive owner.
       - no_candidates: `visible_hive_count > 1` but `candidates_searched == 0`.
         Visible hives exist but contain no registered (non-caller) agents.
-      - threshold_filtered: `candidates_searched > 0` but `matches` is empty
-        after applying `threshold_used`. Lower `min_score` and retry.
+      - threshold_filtered: `candidates_searched > 0` but `matches` is empty.
+        Some pool of agents existed; `threshold_used` rejected all of
+        them (or all of the top-`limit` by similarity, which is the same
+        thing in practice). Lower `min_score` and retry.
 
-    Diagnostics are intentionally computed even on success — `candidates_searched`
-    > `len(matches)` tells the caller their threshold dropped some non-zero
-    number of below-threshold candidates, which is useful when tuning."""
+    Field semantics:
+      - `candidates_searched` is the SIZE OF THE POOL: registered,
+        non-caller agents across every hive the caller can see. It's
+        independent of `limit`, `min_score`, and even the query
+        embedding — it would be the same for any query. Use it to
+        distinguish "nobody to match against" from "matches existed
+        but got filtered."
+      - `candidates_searched > len(matches)` does NOT necessarily mean
+        the threshold dropped someone. `limit` also caps `matches` —
+        a pool of 100 with the top-10 all above threshold yields
+        `candidates_searched=100, len(matches)=10` with zero threshold
+        rejections. To know if the threshold is biting, retry with a
+        lower `min_score` and see if `len(matches)` grows.
+      - `threshold_used` is the floor that WAS applied (after defaulting
+        — useful when you didn't pass `min_score` and want to know what
+        you got)."""
     matches: list[AgentMatch]
     candidates_searched: int
     threshold_used: float

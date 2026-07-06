@@ -112,9 +112,10 @@ class TestNegotiationAction:
         assert NegotiationAction.CLOSED == "closed"
         assert NegotiationAction.WITHDRAWN == "withdrawn"
         assert NegotiationAction.ESCALATED == "escalated"
+        assert NegotiationAction.NOTE == "note"
 
     def test_member_count(self) -> None:
-        assert len(NegotiationAction) == 11
+        assert len(NegotiationAction) == 12
 
 
 class TestLearningCategory:

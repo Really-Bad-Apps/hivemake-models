@@ -88,6 +88,13 @@ class NegotiationAction(StrEnum):
     CLOSED = "closed"
     WITHDRAWN = "withdrawn"
     ESCALATED = "escalated"
+    # NOTE is a state-neutral message: the ticket's creator or current
+    # assignee can append context to the negotiation thread without a
+    # status transition. Fills the "actually change of plan, do X"
+    # gap where the state machine gives no fitting action to write
+    # under (provide_info misrepresents unsolicited context as an
+    # answer to a request that never happened).
+    NOTE = "note"
 
 
 class LearningCategory(StrEnum):

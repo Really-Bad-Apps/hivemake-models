@@ -12,6 +12,7 @@ from hivemake_models.enums import (
     TicketType,
     UserStatus,
 )
+from hivemake_models.knowledge import KnowledgeMatch
 from hivemake_models.models import (
     Agent,
     AgentLearning,
@@ -59,6 +60,7 @@ __all__ = [
     "HiveTelegramLinkToken",
     "HiveTelegramSubscription",
     "Invite",
+    "KnowledgeMatch",
     "Negotiation",
     "NotificationTarget",
     "Project",

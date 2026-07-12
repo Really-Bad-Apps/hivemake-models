@@ -1,4 +1,4 @@
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from hivemake_models.enums import (
     AgentStatus,
@@ -93,6 +93,31 @@ class TestUser:
             telegram_chat_id="123456789",
         )
         assert user.telegram_chat_id == "123456789"
+
+    def test_aegis_uuid_defaults_to_none(self) -> None:
+        user = User(
+            id=uuid4(),
+            aegis_user_id=42,
+            email="jason@acme.com",
+            display_name="Jason",
+            status=UserStatus.ACTIVE,
+            created_at=1700000000,
+            updated_at=1700000000,
+        )
+        assert user.aegis_uuid is None
+
+    def test_create_with_aegis_uuid(self) -> None:
+        user = User(
+            id=uuid4(),
+            aegis_user_id=42,
+            email="jason@acme.com",
+            display_name="Jason",
+            status=UserStatus.ACTIVE,
+            created_at=1700000000,
+            updated_at=1700000000,
+            aegis_uuid=UUID("9b2c7a4d-1234-5678-9abc-def012345678"),
+        )
+        assert user.aegis_uuid == UUID("9b2c7a4d-1234-5678-9abc-def012345678")
 
 
 class TestHiveMember:
@@ -434,6 +459,7 @@ class TestInvite:
         assert invite.status == InviteStatus.PENDING
         assert invite.accepted_at is None
         assert invite.accepted_by_aegis_user_id is None
+        assert invite.accepted_by_aegis_uuid is None
 
     def test_create_accepted(self) -> None:
         invite = Invite(
@@ -452,6 +478,24 @@ class TestInvite:
         )
         assert invite.status == InviteStatus.ACCEPTED
         assert invite.accepted_by_aegis_user_id == 42
+
+    def test_create_accepted_with_aegis_uuid(self) -> None:
+        invite = Invite(
+            id=uuid4(),
+            hive_id=uuid4(),
+            email="carol@acme.com",
+            role=HiveMemberRole.ADMIN,
+            token="opaque-token-qrs",
+            status=InviteStatus.ACCEPTED,
+            created_by_user_id=uuid4(),
+            expires_at=1700000000 + 7 * 24 * 60 * 60,
+            created_at=1700000000,
+            updated_at=1700000050,
+            accepted_at=1700000050,
+            accepted_by_aegis_user_id=42,
+            accepted_by_aegis_uuid=UUID("9b2c7a4d-1234-5678-9abc-def012345678"),
+        )
+        assert invite.accepted_by_aegis_uuid == UUID("9b2c7a4d-1234-5678-9abc-def012345678")
 
 
 class TestNotificationTarget:

@@ -40,6 +40,7 @@ class User:
     created_at: int
     updated_at: int
     telegram_chat_id: Optional[str] = None
+    aegis_uuid: Optional[UUID] = None
 
 
 @dataclass
@@ -253,6 +254,7 @@ class Invite:
     updated_at: int
     accepted_at: Optional[int] = None
     accepted_by_aegis_user_id: Optional[int] = None
+    accepted_by_aegis_uuid: Optional[UUID] = None
 
 
 @dataclass

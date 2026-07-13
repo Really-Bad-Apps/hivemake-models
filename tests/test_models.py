@@ -6,7 +6,6 @@ from hivemake_models.enums import (
     HiveStatus,
     HiveVisibility,
     InviteStatus,
-    LearningCategory,
     NegotiationAction,
     ProjectStatus,
     TicketPriority,
@@ -16,7 +15,6 @@ from hivemake_models.enums import (
 )
 from hivemake_models.models import (
     Agent,
-    AgentLearning,
     AgentMatch,
     ApiKey,
     EscalationActor,
@@ -296,36 +294,6 @@ class TestApiKey:
         )
         assert key.revoked_at == 1700000100
         assert key.revoked_by_user_id == revoker_id
-
-
-class TestAgentLearning:
-    def test_create_with_category(self) -> None:
-        learning = AgentLearning(
-            id=uuid4(),
-            hive_id=uuid4(),
-            agent_id=uuid4(),
-            content="When ORM errors appear, redirect to the data-layer agent",
-            active=True,
-            created_at=1700000000,
-            updated_at=1700000000,
-            category=LearningCategory.ROUTING,
-            source_ticket_id=uuid4(),
-        )
-        assert learning.category == LearningCategory.ROUTING
-        assert learning.active is True
-
-    def test_create_without_optional_fields(self) -> None:
-        learning = AgentLearning(
-            id=uuid4(),
-            hive_id=uuid4(),
-            agent_id=uuid4(),
-            content="Memory leak pattern detected in connection pool",
-            active=True,
-            created_at=1700000000,
-            updated_at=1700000000,
-        )
-        assert learning.category is None
-        assert learning.source_ticket_id is None
 
 
 class TestTicket:

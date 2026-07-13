@@ -4,7 +4,6 @@ from hivemake_models.enums import (
     HiveStatus,
     HiveVisibility,
     InviteStatus,
-    LearningCategory,
     NegotiationAction,
     ProjectStatus,
     TicketPriority,
@@ -15,7 +14,6 @@ from hivemake_models.enums import (
 from hivemake_models.knowledge import KnowledgeMatch
 from hivemake_models.models import (
     Agent,
-    AgentLearning,
     AgentMatch,
     ApiKey,
     DiscoverAgentsResult,
@@ -41,7 +39,6 @@ __all__ = [
     "HiveStatus",
     "HiveVisibility",
     "InviteStatus",
-    "LearningCategory",
     "NegotiationAction",
     "ProjectStatus",
     "TicketPriority",
@@ -50,7 +47,6 @@ __all__ = [
     "UserStatus",
     # Models
     "Agent",
-    "AgentLearning",
     "AgentMatch",
     "ApiKey",
     "DiscoverAgentsResult",

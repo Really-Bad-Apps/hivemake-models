@@ -8,7 +8,6 @@ from hivemake_models.enums import (
     HiveStatus,
     HiveVisibility,
     InviteStatus,
-    LearningCategory,
     NegotiationAction,
     ProjectStatus,
     TicketPriority,
@@ -168,19 +167,6 @@ class DiscoverAgentsResult:
     threshold_dropped: int
     threshold_used: float
     visible_hive_count: int
-
-
-@dataclass
-class AgentLearning:
-    id: UUID
-    hive_id: UUID
-    agent_id: UUID
-    content: str
-    active: bool
-    created_at: int
-    updated_at: int
-    category: Optional[LearningCategory] = None
-    source_ticket_id: Optional[UUID] = None
 
 
 @dataclass

@@ -17,12 +17,11 @@ This is a lightweight library with no database dependencies. It defines the comm
 | `TicketPriority` | critical, high, medium, low |
 | `TicketStatus` | open, triaging, accepted, in_progress, info_requested, escalated, resolved, closed, withdrawn, rejected |
 | `NegotiationAction` | submitted, accepted, rejected, redirected, info_requested, info_provided, resolved, reopened, closed, withdrawn, escalated |
-| `LearningCategory` | routing, error_pattern, domain_knowledge |
 | `InviteStatus` | pending, accepted, revoked, expired |
 
 ## Models
 
-`Hive`, `HiveMember`, `User`, `ApiKey`, `Project`, `Agent`, `AgentLearning`, `Ticket`, `Negotiation`, `TicketHistory`, `Invite`
+`Hive`, `HiveMember`, `User`, `ApiKey`, `Project`, `Agent`, `Ticket`, `Negotiation`, `TicketHistory`, `Invite`
 
 All models are Python dataclasses. UUID primary keys, BIGINT unix timestamps for all date/time fields.
 

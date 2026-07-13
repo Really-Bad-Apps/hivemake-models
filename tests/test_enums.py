@@ -3,7 +3,6 @@ from hivemake_models.enums import (
     HiveMemberRole,
     HiveStatus,
     InviteStatus,
-    LearningCategory,
     NegotiationAction,
     ProjectStatus,
     TicketPriority,
@@ -116,16 +115,6 @@ class TestNegotiationAction:
 
     def test_member_count(self) -> None:
         assert len(NegotiationAction) == 12
-
-
-class TestLearningCategory:
-    def test_values(self) -> None:
-        assert LearningCategory.ROUTING == "routing"
-        assert LearningCategory.ERROR_PATTERN == "error_pattern"
-        assert LearningCategory.DOMAIN_KNOWLEDGE == "domain_knowledge"
-
-    def test_member_count(self) -> None:
-        assert len(LearningCategory) == 3
 
 
 class TestInviteStatus:

@@ -359,14 +359,14 @@ class TestOutboundTicket:
 
     def test_wraps_ticket_with_autonomous_true(self) -> None:
         ticket = self._sample_ticket()
-        outbound = OutboundTicket(ticket=ticket, assigned_agent_autonomous=True)
+        outbound = OutboundTicket(ticket=ticket, waiting_on_autonomous=True)
         assert outbound.ticket is ticket
-        assert outbound.assigned_agent_autonomous is True
+        assert outbound.waiting_on_autonomous is True
 
     def test_wraps_ticket_with_autonomous_false(self) -> None:
         ticket = self._sample_ticket()
-        outbound = OutboundTicket(ticket=ticket, assigned_agent_autonomous=False)
-        assert outbound.assigned_agent_autonomous is False
+        outbound = OutboundTicket(ticket=ticket, waiting_on_autonomous=False)
+        assert outbound.waiting_on_autonomous is False
 
 
 class TestNegotiation:

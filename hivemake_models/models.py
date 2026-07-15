@@ -190,19 +190,27 @@ class Ticket:
 
 @dataclass
 class OutboundTicket:
-    """A Ticket paired with a hint about whether the assignee is
-    autonomous. Returned by outbound-flavored tools (`file_ticket`,
-    `redirect`, `request_info`, `reopen`, `list_outbox`) so the caller
-    can decide whether to start polling `get_ticket` immediately or
-    wait for the assignee's human owner to drive them.
+    """A Ticket paired with a hint about whether the agent the caller
+    is now waiting on is autonomous. Returned by outbound-flavored
+    tools (`file_ticket`, `redirect`, `request_info`, `reopen`,
+    `list_outbox`) so the caller can decide whether to start polling
+    `get_ticket` immediately or wait for a human to drive the other
+    side.
 
-    `assigned_agent_autonomous` is denormalized from the assignee's
-    `Agent.autonomous` flag at read time — it's a snapshot, not a
-    live signal. If the flag flips between the response and a later
-    poll, the caller sees the new value on the next outbound call.
+    `waiting_on_autonomous` describes THE NEXT RESPONDER, which is
+    tool-dependent:
+      - file_ticket / redirect / reopen / list_outbox → the assignee.
+      - request_info → the creator (the caller is the assignee, and
+        after request_info the ticket is waiting on the creator to
+        provide_info).
+
+    The value is denormalized from that agent's `Agent.autonomous`
+    flag at read time — it's a snapshot, not a live signal. If the
+    flag flips between the response and a later poll, the caller sees
+    the new value on the next outbound call.
     """
     ticket: Ticket
-    assigned_agent_autonomous: bool
+    waiting_on_autonomous: bool
 
 
 @dataclass

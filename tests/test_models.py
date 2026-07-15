@@ -25,6 +25,7 @@ from hivemake_models.models import (
     Invite,
     Negotiation,
     NotificationTarget,
+    OutboundTicket,
     Project,
     Ticket,
     TicketHistory,
@@ -223,6 +224,31 @@ class TestAgent:
         )
         assert agent.registered_at == 1700000005
 
+    def test_default_autonomous_is_false(self) -> None:
+        agent = Agent(
+            id=uuid4(),
+            hive_id=uuid4(),
+            project_id=uuid4(),
+            name="Manual Agent",
+            status=AgentStatus.ACTIVE,
+            created_at=1700000000,
+            updated_at=1700000000,
+        )
+        assert agent.autonomous is False
+
+    def test_autonomous_set_true(self) -> None:
+        agent = Agent(
+            id=uuid4(),
+            hive_id=uuid4(),
+            project_id=uuid4(),
+            name="Autonomous Agent",
+            status=AgentStatus.ACTIVE,
+            created_at=1700000000,
+            updated_at=1700000000,
+            autonomous=True,
+        )
+        assert agent.autonomous is True
+
 
 class TestAgentMatch:
     def test_create(self) -> None:
@@ -313,6 +339,34 @@ class TestTicket:
         )
         assert ticket.assigned_agent_id is None
         assert ticket.resolution is None
+
+
+class TestOutboundTicket:
+    def _sample_ticket(self) -> Ticket:
+        return Ticket(
+            id=uuid4(),
+            hive_id=uuid4(),
+            project_id=uuid4(),
+            created_by_agent_id=uuid4(),
+            ticket_type=TicketType.TASK,
+            title="Deploy something",
+            description="Please deploy it",
+            priority=TicketPriority.MEDIUM,
+            status=TicketStatus.OPEN,
+            created_at=1700000000,
+            updated_at=1700000000,
+        )
+
+    def test_wraps_ticket_with_autonomous_true(self) -> None:
+        ticket = self._sample_ticket()
+        outbound = OutboundTicket(ticket=ticket, assigned_agent_autonomous=True)
+        assert outbound.ticket is ticket
+        assert outbound.assigned_agent_autonomous is True
+
+    def test_wraps_ticket_with_autonomous_false(self) -> None:
+        ticket = self._sample_ticket()
+        outbound = OutboundTicket(ticket=ticket, assigned_agent_autonomous=False)
+        assert outbound.assigned_agent_autonomous is False
 
 
 class TestNegotiation:

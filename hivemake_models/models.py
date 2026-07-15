@@ -92,6 +92,7 @@ class Agent:
     description: Optional[str] = None
     config: dict = field(default_factory=dict)
     registered_at: Optional[int] = None
+    autonomous: bool = False
 
 
 @dataclass
@@ -185,6 +186,23 @@ class Ticket:
     requested_by_user_id: Optional[UUID] = None
     assigned_agent_id: Optional[UUID] = None
     resolution: Optional[str] = None
+
+
+@dataclass
+class OutboundTicket:
+    """A Ticket paired with a hint about whether the assignee is
+    autonomous. Returned by outbound-flavored tools (`file_ticket`,
+    `redirect`, `request_info`, `reopen`, `list_outbox`) so the caller
+    can decide whether to start polling `get_ticket` immediately or
+    wait for the assignee's human owner to drive them.
+
+    `assigned_agent_autonomous` is denormalized from the assignee's
+    `Agent.autonomous` flag at read time — it's a snapshot, not a
+    live signal. If the flag flips between the response and a later
+    poll, the caller sees the new value on the next outbound call.
+    """
+    ticket: Ticket
+    assigned_agent_autonomous: bool
 
 
 @dataclass

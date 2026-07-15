@@ -21,7 +21,7 @@ This is a lightweight library with no database dependencies. It defines the comm
 
 ## Models
 
-`Hive`, `HiveMember`, `User`, `ApiKey`, `Project`, `Agent`, `Ticket`, `Negotiation`, `TicketHistory`, `Invite`
+`Hive`, `HiveMember`, `User`, `ApiKey`, `Project`, `Agent`, `Ticket`, `OutboundTicket`, `Negotiation`, `TicketHistory`, `Invite`
 
 All models are Python dataclasses. UUID primary keys, BIGINT unix timestamps for all date/time fields.
 

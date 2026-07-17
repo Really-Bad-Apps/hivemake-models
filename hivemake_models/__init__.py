@@ -26,9 +26,11 @@ from hivemake_models.models import (
     Negotiation,
     NotificationTarget,
     OutboundTicket,
+    OutboundTicketListResult,
     Project,
     Ticket,
     TicketHistory,
+    TicketListResult,
     User,
     UserTelegramLinkToken,
 )
@@ -61,9 +63,11 @@ __all__ = [
     "Negotiation",
     "NotificationTarget",
     "OutboundTicket",
+    "OutboundTicketListResult",
     "Project",
     "Ticket",
     "TicketHistory",
+    "TicketListResult",
     "User",
     "UserTelegramLinkToken",
 ]

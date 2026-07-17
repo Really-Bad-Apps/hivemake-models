@@ -214,6 +214,38 @@ class OutboundTicket:
 
 
 @dataclass
+class TicketListResult:
+    """Return shape for `list_inbox`.
+
+    Wraps the ticket list with an overflow guard so an agent asking
+    a broad question can be told to narrow down instead of receiving
+    a payload that would blow the LLM tool-result cap.
+
+    `too_many` is True when the underlying query would have matched
+    more than the server's row-count ceiling. In that case `tickets`
+    is empty and `message` carries an advisory suggesting the caller
+    supply the `q` filter param. `count` is always the true match count
+    (not `len(tickets)`) so the caller can size their next attempt.
+    """
+    tickets: list[Ticket] = field(default_factory=list)
+    too_many: bool = False
+    count: int = 0
+    message: Optional[str] = None
+
+
+@dataclass
+class OutboundTicketListResult:
+    """Return shape for `list_outbox`. Same overflow-guard contract as
+    `TicketListResult`, but each row carries an OutboundTicket (ticket
+    + `waiting_on_autonomous` polling hint) rather than a bare Ticket.
+    """
+    tickets: list[OutboundTicket] = field(default_factory=list)
+    too_many: bool = False
+    count: int = 0
+    message: Optional[str] = None
+
+
+@dataclass
 class Negotiation:
     id: UUID
     hive_id: UUID

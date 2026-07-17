@@ -26,9 +26,11 @@ from hivemake_models.models import (
     Negotiation,
     NotificationTarget,
     OutboundTicket,
+    OutboundTicketListResult,
     Project,
     Ticket,
     TicketHistory,
+    TicketListResult,
     User,
     UserTelegramLinkToken,
 )
@@ -367,6 +369,75 @@ class TestOutboundTicket:
         ticket = self._sample_ticket()
         outbound = OutboundTicket(ticket=ticket, waiting_on_autonomous=False)
         assert outbound.waiting_on_autonomous is False
+
+
+def _sample_ticket() -> Ticket:
+    return Ticket(
+        id=uuid4(),
+        hive_id=uuid4(),
+        project_id=uuid4(),
+        created_by_agent_id=uuid4(),
+        ticket_type=TicketType.TASK,
+        title="Deploy something",
+        description="Please deploy it",
+        priority=TicketPriority.MEDIUM,
+        status=TicketStatus.OPEN,
+        created_at=1700000000,
+        updated_at=1700000000,
+    )
+
+
+class TestTicketListResult:
+    def test_default_empty_shape(self) -> None:
+        result = TicketListResult()
+        assert result.tickets == []
+        assert result.too_many is False
+        assert result.count == 0
+        assert result.message is None
+
+    def test_success_shape(self) -> None:
+        tickets = [_sample_ticket(), _sample_ticket()]
+        result = TicketListResult(tickets=tickets, too_many=False, count=2)
+        assert result.tickets is tickets
+        assert result.too_many is False
+        assert result.count == 2
+        assert result.message is None
+
+    def test_overflow_shape(self) -> None:
+        result = TicketListResult(
+            tickets=[], too_many=True, count=87, message="Narrow further.",
+        )
+        assert result.tickets == []
+        assert result.too_many is True
+        assert result.count == 87
+        assert result.message == "Narrow further."
+
+
+class TestOutboundTicketListResult:
+    def test_default_empty_shape(self) -> None:
+        result = OutboundTicketListResult()
+        assert result.tickets == []
+        assert result.too_many is False
+        assert result.count == 0
+        assert result.message is None
+
+    def test_success_shape(self) -> None:
+        outbound = OutboundTicket(ticket=_sample_ticket(), waiting_on_autonomous=True)
+        result = OutboundTicketListResult(
+            tickets=[outbound], too_many=False, count=1,
+        )
+        assert result.tickets == [outbound]
+        assert result.tickets[0].waiting_on_autonomous is True
+        assert result.count == 1
+
+    def test_overflow_shape(self) -> None:
+        result = OutboundTicketListResult(
+            tickets=[], too_many=True, count=58, message="Provide `q`.",
+        )
+        assert result.tickets == []
+        assert result.too_many is True
+        assert result.count == 58
+        assert result.message == "Provide `q`."
 
 
 class TestNegotiation:

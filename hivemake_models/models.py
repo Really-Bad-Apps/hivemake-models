@@ -30,14 +30,19 @@ class Hive:
 
 @dataclass
 class User:
-    """Global user record. One row per Aegis identity, regardless of hive count."""
+    """Global user record. One row per Aegis identity, regardless of hive count.
+
+    `aegis_user_id` is Optional post-Aegis-phase-3 (2026-07-22): new users
+    provisioned by a phase-3 `user.verified` webhook carry only a UUID.
+    Existing rows keep their pre-migration INT.
+    """
     id: UUID
-    aegis_user_id: int
     email: str
     display_name: str
     status: UserStatus
     created_at: int
     updated_at: int
+    aegis_user_id: Optional[int] = None
     telegram_chat_id: Optional[str] = None
     aegis_uuid: Optional[UUID] = None
 

@@ -26,6 +26,12 @@ class Hive:
     created_at: int
     updated_at: int
     visibility: HiveVisibility = HiveVisibility.CLOSED
+    # Set when the hive was suspended for having no reachable owner (its
+    # sole owner was deleted upstream in Aegis and no admin existed to
+    # promote). The hive-purge task hard-deletes suspended hives once
+    # this is older than the grace period. NULL for hives suspended for
+    # any other reason, and for every active hive.
+    suspended_at: Optional[int] = None
 
 
 @dataclass

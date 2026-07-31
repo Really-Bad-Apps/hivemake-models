@@ -239,6 +239,58 @@ class TicketListResult:
 
 
 @dataclass
+class UnreadTicket:
+    """A terminal ticket the calling agent is a party to and has not read
+    since the last thing that happened on it.
+
+    "Read" is per-agent, deliberately NOT a ticket status: both parties see
+    the same status but track attention independently, so it cannot live on
+    the ticket row. See `TicketReadRepository`.
+
+    Unread itself is derived by COUNTING peer-authored negotiations, not by
+    comparing timestamps: `negotiations.created_at` is second-granular with
+    a UUID pkey, so same-second actions are unorderable and a timestamp
+    comparison would resolve the tie as "read" — silently dropping the
+    peer's message. See `TicketReadRepository`.
+
+    `last_activity_at` is therefore presentational only: it orders the list
+    most-recent-first and tells the agent how stale the item is. It plays no
+    part in deciding what is unread.
+
+    `is_creator` says which side the caller is on, so the agent can tell
+    "the thing I asked for was answered" from "the thing I was working on
+    was withdrawn" without re-deriving it from the ticket.
+    """
+    ticket: Ticket
+    last_activity_at: int
+    is_creator: bool
+
+
+@dataclass
+class CheckTicketsResult:
+    """Return shape for `check_tickets` — everything wanting the agent's
+    attention, in one call.
+
+    Two buckets, because they answer different questions:
+      - `inbox`  — active tickets assigned to the caller (work owed).
+      - `unread` — terminal tickets the caller is a party to that moved
+        since they last looked (correspondence owed). This is the bucket
+        `list_outbox` structurally cannot show: it filters terminal by
+        default, so a resolution vanishes the instant it is written.
+
+    Overflow guard matches `TicketListResult`, but is applied to the
+    COMBINED result: `count` is the total across both buckets and, on
+    `too_many`, BOTH lists are empty. Returning one bucket and suppressing
+    the other would quietly answer half the question the agent asked.
+    """
+    inbox: list[Ticket] = field(default_factory=list)
+    unread: list[UnreadTicket] = field(default_factory=list)
+    too_many: bool = False
+    count: int = 0
+    message: Optional[str] = None
+
+
+@dataclass
 class OutboundTicketListResult:
     """Return shape for `list_outbox`. Same overflow-guard contract as
     `TicketListResult`, but each row carries an OutboundTicket (ticket

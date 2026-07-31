@@ -76,6 +76,44 @@ class TicketStatus(StrEnum):
     REJECTED = "rejected"
 
 
+# The statuses a ticket cannot leave on its own. RESOLVED is included even
+# though it is only SOFT-terminal (the creator may `reopen`): "terminal"
+# here means "no longer in either party's working list", which is exactly
+# the property the unread machinery keys on.
+#
+# ESCALATED is deliberately NOT terminal — it is parked with a human and
+# still moving. It is also absent from the agent-facing active set, so it
+# belongs to neither; that is intentional and matches the inbox default.
+TERMINAL_STATUSES: frozenset[TicketStatus] = frozenset({
+    TicketStatus.RESOLVED,
+    TicketStatus.CLOSED,
+    TicketStatus.REJECTED,
+    TicketStatus.WITHDRAWN,
+})
+
+# The agent-facing "still my problem" set — what `list_inbox` / `list_outbox`
+# return by default, and the inbox half of `check_tickets`.
+#
+# ESCALATED is absent deliberately: an escalated ticket is parked with a
+# human, so surfacing it in the agent's working list would be noise the
+# agent cannot act on. It reappears once a human recovers it to ACCEPTED.
+#
+# INFO_REQUESTED is present on BOTH sides on purpose (bug T-805fa610): the
+# creator needs to see that a question is waiting on them, and the assignee
+# needs to see the ticket is paused pending that answer.
+#
+# NOT the same as the cross-hive debug view's active set in
+# `blueprints/tickets_queue.py`, which deliberately includes TRIAGING,
+# IN_PROGRESS and ESCALATED — a stuck escalation is exactly what a human
+# staring at that page is looking for. Different audience, different set;
+# don't unify them.
+AGENT_ACTIVE_STATUSES: frozenset[TicketStatus] = frozenset({
+    TicketStatus.OPEN,
+    TicketStatus.ACCEPTED,
+    TicketStatus.INFO_REQUESTED,
+})
+
+
 class NegotiationAction(StrEnum):
     SUBMITTED = "submitted"
     ACCEPTED = "accepted"

@@ -1,4 +1,5 @@
 from hivemake_models.enums import (
+    AGENT_ACTIVE_STATUSES,
     AgentStatus,
     HiveMemberRole,
     HiveStatus,
@@ -6,6 +7,7 @@ from hivemake_models.enums import (
     InviteStatus,
     NegotiationAction,
     ProjectStatus,
+    TERMINAL_STATUSES,
     TicketPriority,
     TicketStatus,
     TicketType,
@@ -16,6 +18,7 @@ from hivemake_models.models import (
     Agent,
     AgentMatch,
     ApiKey,
+    CheckTicketsResult,
     DiscoverAgentsResult,
     EscalationActor,
     Hive,
@@ -31,12 +34,14 @@ from hivemake_models.models import (
     Ticket,
     TicketHistory,
     TicketListResult,
+    UnreadTicket,
     User,
     UserTelegramLinkToken,
 )
 
 __all__ = [
     # Enums
+    "AGENT_ACTIVE_STATUSES",
     "AgentStatus",
     "HiveMemberRole",
     "HiveStatus",
@@ -44,6 +49,7 @@ __all__ = [
     "InviteStatus",
     "NegotiationAction",
     "ProjectStatus",
+    "TERMINAL_STATUSES",
     "TicketPriority",
     "TicketStatus",
     "TicketType",
@@ -52,6 +58,7 @@ __all__ = [
     "Agent",
     "AgentMatch",
     "ApiKey",
+    "CheckTicketsResult",
     "DiscoverAgentsResult",
     "EscalationActor",
     "Hive",
@@ -68,6 +75,7 @@ __all__ = [
     "Ticket",
     "TicketHistory",
     "TicketListResult",
+    "UnreadTicket",
     "User",
     "UserTelegramLinkToken",
 ]

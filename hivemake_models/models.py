@@ -9,6 +9,7 @@ from hivemake_models.enums import (
     HiveVisibility,
     InviteStatus,
     NegotiationAction,
+    NotificationTargetKind,
     ProjectStatus,
     TicketPriority,
     TicketStatus,
@@ -361,14 +362,31 @@ class Invite:
 class NotificationTarget:
     """
     A single Telegram destination: a chat, optionally narrowed to a
-    supergroup topic. Source-agnostic by design — the dispatcher doesn't
-    care whether the target came from a hive activity-feed subscription or
-    from a user's linked DM chat. chat_id is a string to match how chat ids
-    are stored elsewhere and the byteforge-telegram send API (which takes a
-    str chat_id), sidestepping int64 precision concerns.
+    supergroup topic. chat_id is a string to match how chat ids are stored
+    elsewhere and the byteforge-telegram send API (which takes a str
+    chat_id), sidestepping int64 precision concerns.
+
+    This was originally source-agnostic — the dispatcher didn't care where a
+    target came from. Escalation action buttons ended that: a keyboard may
+    only be attached to a `USER_DM`, since authorizing a button press means
+    mapping the clicking Telegram user back to a HiveMake user, and that
+    mapping exists only for DMs. `kind` is the discriminator that lets the
+    notifier make that call without re-deriving provenance from the chat_id.
+
+    `user_id` is populated for `USER_DM` only, and is the HiveMake user (not
+    the Telegram user). It is not needed to authorize a click — the callback
+    handler re-resolves the clicker from `callback_query.from.id`, because
+    the person who taps need not be the person who was DMed. It is carried
+    for logging and for future per-recipient behaviour.
+
+    Defaults keep every existing construction site valid: an unlabelled
+    target is a HIVE_CHANNEL, which is the conservative choice — it never
+    gets a keyboard.
     """
     chat_id: str
     topic_id: Optional[int] = None
+    kind: NotificationTargetKind = NotificationTargetKind.HIVE_CHANNEL
+    user_id: Optional[UUID] = None
 
 
 @dataclass

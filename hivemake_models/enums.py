@@ -135,6 +135,25 @@ class NegotiationAction(StrEnum):
     NOTE = "note"
 
 
+class NotificationTargetKind(StrEnum):
+    """Where a Telegram notification target came from.
+
+    `NotificationTarget` was deliberately source-agnostic — the dispatcher
+    didn't care. Action buttons break that: a keyboard may only be attached
+    to a USER_DM, because authorizing a button press requires mapping the
+    clicking Telegram user back to a HiveMake user, and that mapping only
+    exists for DMs.
+
+    In a private chat Telegram sets `chat.id == user.id`, so a
+    `callback_query`'s `from.id` matches `users.telegram_chat_id` directly.
+    A HIVE_CHANNEL has no such mapping: `hive_telegram_subscriptions` stores
+    only `(hive_id, chat_id, topic_id)` — no user column, no notion of who
+    is in the room. Hence channels stay informational.
+    """
+    USER_DM = "user_dm"
+    HIVE_CHANNEL = "hive_channel"
+
+
 class InviteStatus(StrEnum):
     PENDING = "pending"
     ACCEPTED = "accepted"

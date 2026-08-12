@@ -5,10 +5,13 @@ from hivemake_models.enums import (
     InviteStatus,
     NegotiationAction,
     ProjectStatus,
+    TERMINAL_STATUSES,
     TicketPriority,
     TicketStatus,
     TicketType,
     UserStatus,
+    WaitingParty,
+    waiting_party,
 )
 
 
@@ -139,3 +142,47 @@ class TestEnumsAreStrEnum:
 
     def test_ticket_status_is_string(self) -> None:
         assert isinstance(TicketStatus.OPEN, str)
+
+
+class TestWaitingParty:
+    """The whose-turn-is-it dimension. Ticket 7976e6fc: rendering only the
+    assignment pointed hive managers at the one party that couldn't act."""
+
+    def test_info_requested_waits_on_creator_not_assignee(self) -> None:
+        """The regression. `provide_info` is creator-only, and every
+        state-changing action errors for the assignee from this status."""
+        assert waiting_party(TicketStatus.INFO_REQUESTED) is WaitingParty.CREATOR
+
+    def test_escalated_waits_on_human(self) -> None:
+        assert waiting_party(TicketStatus.ESCALATED) is WaitingParty.HUMAN
+
+    def test_terminal_statuses_wait_on_nobody(self) -> None:
+        for status in TERMINAL_STATUSES:
+            assert waiting_party(status) is WaitingParty.NOBODY
+
+    def test_working_statuses_wait_on_assignee(self) -> None:
+        for status in (
+            TicketStatus.OPEN,
+            TicketStatus.TRIAGING,
+            TicketStatus.ACCEPTED,
+            TicketStatus.IN_PROGRESS,
+        ):
+            assert waiting_party(status) is WaitingParty.ASSIGNEE
+
+    def test_every_status_is_mapped(self) -> None:
+        """FORWARD GUARD, not a regression test — it passes today and exists
+        to fail LATER. Adding a status to TicketStatus without deciding whose
+        turn it is must break here, loudly, rather than silently defaulting to
+        ASSIGNEE on every UI surface."""
+        for status in TicketStatus:
+            assert isinstance(waiting_party(status), WaitingParty)
+
+    def test_accepts_raw_strings(self) -> None:
+        """`Ticket.status` is typed TicketStatus but holds a plain str at
+        runtime (psycopg2 rows are splatted in unconverted). The queue
+        endpoint passes that value straight in, so a version of this
+        function that compared with `is` returned the fallback for every
+        real ticket while every enum-constructed test still passed."""
+        assert waiting_party("info_requested") is WaitingParty.CREATOR
+        assert waiting_party("resolved") is WaitingParty.NOBODY
+        assert waiting_party("open") is WaitingParty.ASSIGNEE

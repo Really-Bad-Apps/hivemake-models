@@ -1,6 +1,7 @@
 from hivemake_models.enums import (
     AGENT_ACTIVE_STATUSES,
     AgentStatus,
+    CREATOR_AWAITING_STATUSES,
     HiveMemberRole,
     HiveStatus,
     HiveVisibility,
@@ -13,6 +14,8 @@ from hivemake_models.enums import (
     TicketStatus,
     TicketType,
     UserStatus,
+    WaitingParty,
+    waiting_party,
 )
 from hivemake_models.knowledge import KnowledgeMatch
 from hivemake_models.models import (
@@ -44,6 +47,7 @@ __all__ = [
     # Enums
     "AGENT_ACTIVE_STATUSES",
     "AgentStatus",
+    "CREATOR_AWAITING_STATUSES",
     "HiveMemberRole",
     "HiveStatus",
     "HiveVisibility",
@@ -56,6 +60,8 @@ __all__ = [
     "TicketStatus",
     "TicketType",
     "UserStatus",
+    "WaitingParty",
+    "waiting_party",
     # Models
     "Agent",
     "AgentMatch",

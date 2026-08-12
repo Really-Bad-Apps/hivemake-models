@@ -102,6 +102,12 @@ TERMINAL_STATUSES: frozenset[TicketStatus] = frozenset({
 # creator needs to see that a question is waiting on them, and the assignee
 # needs to see the ticket is paused pending that answer.
 #
+# Note that membership here is NOT sufficient to make the creator half
+# visible — the query has to ask the creator-side question too. It was in
+# this set the whole time `check_tickets` queried only
+# `list_by_assigned_agent`, which silently dropped exactly that half. See
+# CREATOR_AWAITING_STATUSES below and ticket e5065401.
+#
 # NOT the same as the cross-hive debug view's active set in
 # `blueprints/tickets_queue.py`, which deliberately includes TRIAGING,
 # IN_PROGRESS and ESCALATED — a stuck escalation is exactly what a human
@@ -110,6 +116,37 @@ TERMINAL_STATUSES: frozenset[TicketStatus] = frozenset({
 AGENT_ACTIVE_STATUSES: frozenset[TicketStatus] = frozenset({
     TicketStatus.OPEN,
     TicketStatus.ACCEPTED,
+    TicketStatus.INFO_REQUESTED,
+})
+
+# Statuses where the ticket's CREATOR owes the next move — the
+# `awaiting_your_response` bucket of `check_tickets`, queried against
+# `created_by_agent_id` rather than `assigned_agent_id`.
+#
+# Only INFO_REQUESTED qualifies today, and the audit behind ticket e5065401
+# checked every (status x party) cell to confirm it is the only one:
+#   - OPEN / ACCEPTED     — assignee's move; creator waits, owes nothing.
+#   - ESCALATED           — parked with a human. NEITHER agent can act, so
+#                           it is in no bucket by design. This is the one
+#                           remaining blind spot and it is deliberate. The
+#                           call that finds them differs by side, because
+#                           only the assignee can escalate: the escalator
+#                           uses `list_inbox(status="escalated")`, but the
+#                           CREATOR of a ticket someone else escalated needs
+#                           `list_outbox(status="escalated")` — list_inbox
+#                           filters on assigned_agent_id and returns an
+#                           empty list that reads as "none".
+#   - TERMINAL_STATUSES   — covered by the unread bucket, both parties.
+#   - TRIAGING/IN_PROGRESS— unreachable; no transition produces either
+#                           (see the INFO_REQUESTED row of the transition
+#                           table in ticket_service, which notes the
+#                           IN_PROGRESS half is forward-looking).
+#
+# A single-member frozenset rather than a bare status because the next
+# status added here must be added in ONE place. Splitting the creator-side
+# set across the service and the blueprint is how the assignee-side set
+# drifted in the first place.
+CREATOR_AWAITING_STATUSES: frozenset[TicketStatus] = frozenset({
     TicketStatus.INFO_REQUESTED,
 })
 
@@ -159,3 +196,65 @@ class InviteStatus(StrEnum):
     ACCEPTED = "accepted"
     REVOKED = "revoked"
     EXPIRED = "expired"
+
+
+class WaitingParty(StrEnum):
+    """Who owes the next move on a ticket — the whose-turn-is-it dimension,
+    which is NOT the same as the assignment dimension.
+
+    Assignment answers "who owns this work"; this answers "who is everyone
+    else waiting on". They agree for most of a ticket's life and diverge on
+    exactly one status: INFO_REQUESTED, where the assignee asked a question
+    and the CREATOR must answer it. Rendering only the assignment there
+    points a reader at the one party that cannot act — every state-changing
+    action errors for them, `provide_info` included (it is creator-only).
+
+    That divergence is not cosmetic. It cost a hive manager real time
+    (ticket 7976e6fc): the UI showed a stuck ticket as "assigned to" the
+    agent who had already done everything it could, so there was no way to
+    tell which agent needed nudging. Surface this ALONGSIDE the assignee,
+    never instead of it — both dimensions are real and a reader needs both.
+    """
+    ASSIGNEE = "assignee"
+    CREATOR = "creator"
+    HUMAN = "human"
+    NOBODY = "nobody"
+
+
+def waiting_party(status: TicketStatus) -> WaitingParty:
+    """Map a ticket status to the party who owes the next move.
+
+    Lives in models, not in a blueprint or a React helper, because the
+    server and the web UI must not drift on this — a second copy is how
+    the assignment/turn confusion gets re-introduced on one surface only.
+
+    Exhaustive over TicketStatus deliberately: no fallback branch, so
+    adding a status to the enum without deciding whose turn it is fails
+    loudly here instead of silently defaulting to ASSIGNEE.
+
+    Coerces first because `Ticket.status` is annotated `TicketStatus` but
+    holds a plain `str` at runtime — rows come back from psycopg2 and are
+    splatted into the dataclass without conversion. `==` and set membership
+    both work on a StrEnum either way; `is` does NOT, and an identity check
+    here would return the fallback for every real ticket while passing
+    every test that constructs statuses from the enum.
+    """
+    status = TicketStatus(status)
+    if status in TERMINAL_STATUSES:
+        # Nobody's turn: the ticket is decided. RESOLVED is soft-terminal
+        # (the creator may reopen) but reopening is optional, not owed.
+        return WaitingParty.NOBODY
+    if status is TicketStatus.INFO_REQUESTED:
+        return WaitingParty.CREATOR
+    if status is TicketStatus.ESCALATED:
+        # Parked with a hive member. Neither agent can act until a human
+        # runs one of the four recovery actions.
+        return WaitingParty.HUMAN
+    if status in (
+        TicketStatus.OPEN,
+        TicketStatus.TRIAGING,
+        TicketStatus.ACCEPTED,
+        TicketStatus.IN_PROGRESS,
+    ):
+        return WaitingParty.ASSIGNEE
+    raise ValueError(f"no waiting party defined for status {status!r}")

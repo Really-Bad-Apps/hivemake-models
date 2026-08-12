@@ -272,19 +272,45 @@ class CheckTicketsResult:
     """Return shape for `check_tickets` — everything wanting the agent's
     attention, in one call.
 
-    Two buckets, because they answer different questions:
-      - `inbox`  — active tickets assigned to the caller (work owed).
+    Three buckets, because they are three different obligations with three
+    different next actions:
+      - `inbox` — active tickets assigned to the caller (work owed). The
+        caller can `resolve` / `reject` / `request_info` these.
+      - `awaiting_your_response` — tickets the caller FILED whose assignee
+        called `request_info`. Work is paused until the caller answers, and
+        `provide_info` is creator-only, so the caller is the only party who
+        can move them.
       - `unread` — terminal tickets the caller is a party to that moved
         since they last looked (correspondence owed). This is the bucket
         `list_outbox` structurally cannot show: it filters terminal by
         default, so a resolution vanishes the instant it is written.
 
+    WHY `awaiting_your_response` IS ITS OWN BUCKET rather than extra rows in
+    `inbox`: the two are not the same obligation. `inbox` means "assigned to
+    me", and every action available on an inbox row is unavailable on one of
+    these (and vice versa). Folding them together would force every caller to
+    re-derive which is which from `status` + `created_by_agent_id` per row,
+    and any that forgot would reach for `resolve` and get an
+    InvalidTransitionError.
+
+    HISTORY — this bucket closes a gap that reopened a fixed bug.
+    `INFO_REQUESTED` sits in `AGENT_ACTIVE_STATUSES` for BOTH parties on
+    purpose (bug T-805fa610: the creator must see that a question is waiting
+    on them), and `list_outbox` honors that. But `check_tickets` built its
+    inbox from `list_by_assigned_agent` alone, so the creator half never
+    survived the query — and the playbook tells agents to open with
+    `check_tickets` INSTEAD of `list_outbox`. Net effect: the one agent who
+    could answer got a clean "nothing for you", and tickets rotted until a
+    human stumbled on them (ticket e5065401; live case 0bd66d48, found only
+    after @jmazzahacks nudged the responder by hand).
+
     Overflow guard matches `TicketListResult`, but is applied to the
-    COMBINED result: `count` is the total across both buckets and, on
-    `too_many`, BOTH lists are empty. Returning one bucket and suppressing
-    the other would quietly answer half the question the agent asked.
+    COMBINED result: `count` is the total across all three buckets and, on
+    `too_many`, ALL lists are empty. Returning one bucket and suppressing
+    the others would quietly answer part of the question the agent asked.
     """
     inbox: list[Ticket] = field(default_factory=list)
+    awaiting_your_response: list[Ticket] = field(default_factory=list)
     unread: list[UnreadTicket] = field(default_factory=list)
     too_many: bool = False
     count: int = 0

@@ -268,11 +268,54 @@ class UnreadTicket:
 
 
 @dataclass
+class EscalatedTicket:
+    """A ticket the calling agent is a party to that is parked with a human.
+
+    Read-only awareness: NEITHER agent can act on an escalated ticket, which
+    is why it was originally left out of every `check_tickets` bucket. That
+    turned out to be the wrong call — "you cannot act on it" is not the same
+    as "you should not know about it". Across sessions an agent loses the
+    memory that it escalated something, gets a clean "nothing for you", and
+    the work sits. That is the `e5065401` failure shape exactly.
+
+    Note the human-facing queue (`blueprints/tickets_queue.py`) has always
+    included ESCALATED, because a stuck escalation is precisely what a human
+    scanning that page is looking for. Humans had this visibility and agents
+    did not.
+
+    `is_creator` is required rather than derivable: `waiting_on` is "human"
+    for BOTH parties here, so it cannot say which side you are on, and
+    "did I escalate this, or did someone escalate my ticket" changes what a
+    human will ask you about it.
+    """
+    ticket: Ticket
+    is_creator: bool
+
+
+@dataclass
+class TicketDigest:
+    """One compact row of the overflow index — see `CheckTicketsResult`.
+
+    Deliberately NOT a Ticket: the whole point is to fit a set that was too
+    large to return in full. Carries only what is needed to choose a ticket
+    and then `get_ticket` it.
+
+    `bucket` names which list this row WOULD have appeared in, so the agent
+    keeps the obligation distinction (work owed vs answer owed vs
+    correspondence vs parked) that the buckets exist to draw.
+    """
+    ticket_id: UUID
+    title: str
+    status: TicketStatus
+    bucket: str
+
+
+@dataclass
 class CheckTicketsResult:
     """Return shape for `check_tickets` — everything wanting the agent's
     attention, in one call.
 
-    Three buckets, because they are three different obligations with three
+    Four buckets, because they are four different obligations with four
     different next actions:
       - `inbox` — active tickets assigned to the caller (work owed). The
         caller can `resolve` / `reject` / `request_info` these.
@@ -304,17 +347,43 @@ class CheckTicketsResult:
     human stumbled on them (ticket e5065401; live case 0bd66d48, found only
     after @jmazzahacks nudged the responder by hand).
 
+      - `escalated` — tickets parked with a human. Read-only awareness; see
+        `EscalatedTicket`.
+
     Overflow guard matches `TicketListResult`, but is applied to the
-    COMBINED result: `count` is the total across all three buckets and, on
-    `too_many`, ALL lists are empty. Returning one bucket and suppressing
-    the others would quietly answer part of the question the agent asked.
+    COMBINED result: `count` is the total across all four buckets and, on
+    `too_many`, ALL bucket lists are empty. Returning one bucket and
+    suppressing the others would quietly answer part of the question the
+    agent asked.
+
+    ON OVERFLOW, `digest` IS THE ANSWER. Emptying the buckets was right —
+    an undetectable partial answer is worse than none — but for a long time
+    it also left the caller with nowhere to go, and the documented recovery
+    was `list_inbox` / `list_outbox` with `q=`. That is circular: the
+    ceiling created the problem the escape hatch solved, and it is why those
+    tools could not be retired.
+
+    So `too_many` no longer means "I refuse". The buckets stay empty (that
+    contract is unchanged and still literally true) and `digest` carries a
+    compact index of every ticket that would have been in them — id, title,
+    status, and which bucket. The caller picks and calls `get_ticket`.
+
+    This is also what replaces keyword search over active tickets: search's
+    real job was navigating a list too big to read, and the digest makes the
+    whole set visible instead.
+
+    `digest` is EMPTY when `too_many` is False — the buckets already hold
+    everything, and duplicating them would just spend tokens.
     """
     inbox: list[Ticket] = field(default_factory=list)
     awaiting_your_response: list[Ticket] = field(default_factory=list)
     unread: list[UnreadTicket] = field(default_factory=list)
+    escalated: list[EscalatedTicket] = field(default_factory=list)
     too_many: bool = False
     count: int = 0
     message: Optional[str] = None
+    digest: list[TicketDigest] = field(default_factory=list)
+    digest_truncated: bool = False
 
 
 @dataclass

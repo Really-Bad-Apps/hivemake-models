@@ -126,16 +126,14 @@ AGENT_ACTIVE_STATUSES: frozenset[TicketStatus] = frozenset({
 # Only INFO_REQUESTED qualifies today, and the audit behind ticket e5065401
 # checked every (status x party) cell to confirm it is the only one:
 #   - OPEN / ACCEPTED     — assignee's move; creator waits, owes nothing.
-#   - ESCALATED           — parked with a human. NEITHER agent can act, so
-#                           it is in no bucket by design. This is the one
-#                           remaining blind spot and it is deliberate. The
-#                           call that finds them differs by side, because
-#                           only the assignee can escalate: the escalator
-#                           uses `list_inbox(status="escalated")`, but the
-#                           CREATOR of a ticket someone else escalated needs
-#                           `list_outbox(status="escalated")` — list_inbox
-#                           filters on assigned_agent_id and returns an
-#                           empty list that reads as "none".
+#   - ESCALATED           — parked with a human. NEITHER agent can act, and
+#                           this set is about who owes the next MOVE, so it
+#                           correctly does not belong here. It gets its own
+#                           bucket instead — see ESCALATED_STATUSES below.
+#                           (Until 2026-08-13 it was in no bucket at all and
+#                           this comment called that a deliberate permanent
+#                           blind spot. That was wrong: "cannot act on it" is
+#                           not "should not know about it".)
 #   - TERMINAL_STATUSES   — covered by the unread bucket, both parties.
 #   - TRIAGING/IN_PROGRESS— unreachable; no transition produces either
 #                           (see the INFO_REQUESTED row of the transition
@@ -148,6 +146,23 @@ AGENT_ACTIVE_STATUSES: frozenset[TicketStatus] = frozenset({
 # drifted in the first place.
 CREATOR_AWAITING_STATUSES: frozenset[TicketStatus] = frozenset({
     TicketStatus.INFO_REQUESTED,
+})
+
+# The `escalated` bucket of `check_tickets` — tickets parked with a human.
+#
+# Queried against BOTH `assigned_agent_id` and `created_by_agent_id`,
+# because only the assignee can escalate, so the two sides see a given
+# ticket for different reasons and neither query alone is complete. Getting
+# this half-right is the exact shape of ticket e5065401: a creator-side
+# query that was never asked returned a clean "nothing for you".
+#
+# Deliberately NOT merged into AGENT_ACTIVE_STATUSES. That set answers "who
+# owes the next move", and on an escalated ticket the answer is neither
+# agent — putting it there would push tickets into `inbox` that the agent
+# would then try, and fail, to act on. Separate set, separate bucket,
+# read-only.
+ESCALATED_STATUSES: frozenset[TicketStatus] = frozenset({
+    TicketStatus.ESCALATED,
 })
 
 

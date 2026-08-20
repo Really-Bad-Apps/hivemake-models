@@ -14,6 +14,7 @@ from hivemake_models.enums import (
     UserStatus,
 )
 from hivemake_models.models import (
+    is_self_assigned,
     Agent,
     AgentMatch,
     ApiKey,
@@ -647,3 +648,44 @@ class TestEscalationActor:
         actor = EscalationActor()
         assert actor.agent_id is None
         assert actor.user_id is None
+
+
+class TestIsSelfAssigned:
+    """The UUID-vs-str comparison here is the whole reason this is a shared
+    helper rather than three inline `==` checks."""
+
+    def _ticket(self, created, assigned) -> Ticket:
+        return Ticket(
+            id=uuid4(),
+            hive_id=uuid4(),
+            project_id=uuid4(),
+            created_by_agent_id=created,
+            ticket_type=TicketType.TASK,
+            title="t",
+            description="d",
+            priority=TicketPriority.MEDIUM,
+            status=TicketStatus.OPEN,
+            created_at=1700000000,
+            updated_at=1700000000,
+            assigned_agent_id=assigned,
+        )
+
+    def test_same_agent_is_self_assigned(self) -> None:
+        agent = uuid4()
+        assert is_self_assigned(self._ticket(agent, agent)) is True
+
+    def test_different_agents_is_not(self) -> None:
+        assert is_self_assigned(self._ticket(uuid4(), uuid4())) is False
+
+    def test_mixed_uuid_and_str_still_matches(self) -> None:
+        """psycopg2 hands these back as `str` unless `register_uuid()` is
+        called, which this codebase never does — so a ticket built one way
+        and read another must still compare equal. A bare `==` returns False
+        here, which would report every self-assigned ticket as ordinary
+        work while passing a test that built both sides identically."""
+        agent = uuid4()
+        assert is_self_assigned(self._ticket(agent, str(agent))) is True
+        assert is_self_assigned(self._ticket(str(agent), agent)) is True
+
+    def test_unassigned_ticket_is_not_self_assigned(self) -> None:
+        assert is_self_assigned(self._ticket(uuid4(), None)) is False

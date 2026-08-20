@@ -148,6 +148,28 @@ CREATOR_AWAITING_STATUSES: frozenset[TicketStatus] = frozenset({
     TicketStatus.INFO_REQUESTED,
 })
 
+# The `self_assigned` bucket of `check_tickets` — active tickets whose
+# creator and assignee are the SAME agent (an agent's own backlog, which
+# `file_ticket` supports so that work survives the end of a session).
+#
+# AGENT_ACTIVE_STATUSES minus INFO_REQUESTED, and the subtraction is the
+# point. INFO_REQUESTED means an answer is owed, and the only verb that
+# works from it is `provide_info`, which is creator-only — so a
+# self-assigned ticket in that status belongs in `awaiting_your_response`,
+# where the caller (being the creator) can actually act. Listing it here
+# instead would advertise `resolve` and hand the agent a 4xx.
+#
+# Together with `awaiting_your_response` being unfiltered by self-routing,
+# this makes the three active buckets a true partition: every active ticket
+# reaches exactly one. That is what retired `_drop_overlap`, and it is also
+# what lets the overflow COUNT queries stay exact.
+#
+# Only legacy self-routed rows can occupy INFO_REQUESTED today —
+# `request_info` refuses when creator and assignee are the same agent.
+SELF_ASSIGNED_STATUSES: frozenset[TicketStatus] = frozenset(
+    AGENT_ACTIVE_STATUSES - CREATOR_AWAITING_STATUSES
+)
+
 # The `escalated` bucket of `check_tickets` — tickets parked with a human.
 #
 # Queried against BOTH `assigned_agent_id` and `created_by_agent_id`,

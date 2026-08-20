@@ -301,8 +301,8 @@ class TicketDigest:
     and then `get_ticket` it.
 
     `bucket` names which list this row WOULD have appeared in, so the agent
-    keeps the obligation distinction (work owed vs answer owed vs
-    correspondence vs parked) that the buckets exist to draw.
+    keeps the obligation distinction (work owed vs own backlog vs answer
+    owed vs correspondence vs parked) that the buckets exist to draw.
     """
     ticket_id: UUID
     title: str
@@ -310,15 +310,42 @@ class TicketDigest:
     bucket: str
 
 
+def is_self_assigned(ticket: "Ticket") -> bool:
+    """True when a ticket's creator and assignee are the same agent.
+
+    Lives in models for the same reason `waiting_party` does: three
+    surfaces ask this question — the ticket service (to refuse
+    `request_info`), the activity notifier (to suppress the self-filing
+    announcement), and the read path — and a second copy is how they drift.
+
+    Compares STRING forms deliberately. These columns arrive from psycopg2
+    and may be `UUID` or `str` depending on the path, and `UUID(...) ==
+    str(...)` is False — so an identity-shaped comparison would report
+    every self-assigned ticket as ordinary work while passing any test that
+    builds both sides the same way. Same trap `waiting_party` documents for
+    statuses.
+
+    An unassigned ticket is not self-assigned; the explicit `None` guard
+    keeps two null columns from collapsing to `"None" == "None"`.
+    """
+    if ticket.assigned_agent_id is None or ticket.created_by_agent_id is None:
+        return False
+    return str(ticket.created_by_agent_id) == str(ticket.assigned_agent_id)
+
+
 @dataclass
 class CheckTicketsResult:
     """Return shape for `check_tickets` — everything wanting the agent's
     attention, in one call.
 
-    Four buckets, because they are four different obligations with four
+    Five buckets, because they are five different obligations with five
     different next actions:
-      - `inbox` — active tickets assigned to the caller (work owed). The
-        caller can `resolve` / `reject` / `request_info` these.
+      - `inbox` — active tickets assigned to the caller BY SOMEONE ELSE
+        (work owed to another agent). The caller can `resolve` / `reject` /
+        `request_info` these.
+      - `self_assigned` — active tickets the caller both filed AND owns.
+        Same verbs as `inbox` minus `request_info`, but a different
+        obligation: nobody is blocked on these.
       - `awaiting_your_response` — tickets the caller FILED whose assignee
         called `request_info`. Work is paused until the caller answers, and
         `provide_info` is creator-only, so the caller is the only party who
@@ -350,11 +377,45 @@ class CheckTicketsResult:
       - `escalated` — tickets parked with a human. Read-only awareness; see
         `EscalatedTicket`.
 
+    WHY `self_assigned` IS ITS OWN BUCKET, by the same argument. Agents may
+    file tickets against themselves, which is how work survives the end of a
+    session: local memory and plan files have no freshness signal and
+    nothing pulls them, whereas `check_tickets` is pulled at the start of
+    every session by construction.
+
+    But self-assigned work is a THIRD obligation class. An `inbox` row means
+    another agent is waiting; a `self_assigned` row means nobody is. Folding
+    them together would bury genuine inbound work under the caller's own
+    someday-pile and make the playbook's "inbox = work you owe someone"
+    framing false. That is the `awaiting_your_response` split again, pointed
+    the other way.
+
+    Separating them also makes the overlap dedup STRUCTURAL. A ticket whose
+    creator and assignee are the same agent is returned by both the
+    assigned-side and created-side queries; routing it to exactly one bucket
+    removes the double-count at the source, rather than needing a third
+    query to subtract it back out (see `_check_tickets_overflow`, which
+    previously tolerated the overcount only because legacy self-routed rows
+    were rare).
+
     Overflow guard matches `TicketListResult`, but is applied to the
-    COMBINED result: `count` is the total across all four buckets and, on
-    `too_many`, ALL bucket lists are empty. Returning one bucket and
-    suppressing the others would quietly answer part of the question the
-    agent asked.
+    COMBINED result: on `too_many`, ALL bucket lists are empty. Returning
+    one bucket and suppressing the others would quietly answer part of the
+    question the agent asked.
+
+    `self_assigned` IS EXEMPT FROM THE OVERFLOW TRIGGER, and this is
+    load-bearing rather than an optimisation. Were it counted, one grooming
+    pass that files more self-tickets than the ceiling would put the agent
+    permanently on the degraded path — every later call returning `too_many`
+    with `inbox` and `awaiting_your_response` empty, including rows where
+    another agent is blocked. The bucket split exists to stop a personal
+    backlog burying inbound work; letting that backlog trip the shared
+    ceiling would reintroduce the same harm one layer down. So the trigger
+    measures obligations involving other parties, and `self_assigned` is
+    capped separately with `self_assigned_truncated` reporting the clip.
+
+    `count` still spans all five buckets — it describes the response, not
+    the trigger.
 
     ON OVERFLOW, `digest` IS THE ANSWER. Emptying the buckets was right —
     an undetectable partial answer is worse than none — but for a long time
@@ -376,6 +437,8 @@ class CheckTicketsResult:
     everything, and duplicating them would just spend tokens.
     """
     inbox: list[Ticket] = field(default_factory=list)
+    self_assigned: list[Ticket] = field(default_factory=list)
+    self_assigned_truncated: bool = False
     awaiting_your_response: list[Ticket] = field(default_factory=list)
     unread: list[UnreadTicket] = field(default_factory=list)
     escalated: list[EscalatedTicket] = field(default_factory=list)

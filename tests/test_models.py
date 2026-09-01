@@ -513,7 +513,7 @@ class TestTicketHistory:
             created_at=1700000000,
             actor_agent_id=uuid4(),
             old_value="open",
-            new_value="triaging",
+            new_value="accepted",
         )
         assert history.actor_user_id is None
 

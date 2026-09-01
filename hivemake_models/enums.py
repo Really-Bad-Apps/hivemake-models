@@ -63,9 +63,18 @@ class TicketPriority(StrEnum):
     LOW = "low"
 
 
+# TRIAGING was removed on 2026-09-01. It came from the original Jira-shaped
+# lifecycle (open -> triaging -> accepted -> in_progress -> resolved) and no
+# transition ever produced it: `_ALLOWED_FROM_STATUS` in ticket_service has
+# no action yielding TRIAGING, so no ticket could reach it in the ~3 months
+# the status existed. Dropped from the enum, the CHECK constraint
+# (migration 026), the debug queue view and the frontend together.
+#
+# IN_PROGRESS is deliberately KEPT despite also being unreachable today: it
+# is referenced as a source status by INFO_REQUESTED in the transition
+# table, so it is forward-looking rather than vestigial.
 class TicketStatus(StrEnum):
     OPEN = "open"
-    TRIAGING = "triaging"
     ACCEPTED = "accepted"
     IN_PROGRESS = "in_progress"
     INFO_REQUESTED = "info_requested"
@@ -109,10 +118,10 @@ TERMINAL_STATUSES: frozenset[TicketStatus] = frozenset({
 # CREATOR_AWAITING_STATUSES below and ticket e5065401.
 #
 # NOT the same as the cross-hive debug view's active set in
-# `blueprints/tickets_queue.py`, which deliberately includes TRIAGING,
-# IN_PROGRESS and ESCALATED — a stuck escalation is exactly what a human
-# staring at that page is looking for. Different audience, different set;
-# don't unify them.
+# `blueprints/tickets_queue.py`, which deliberately includes IN_PROGRESS
+# and ESCALATED — a stuck escalation is exactly what a human staring at
+# that page is looking for. Different audience, different set; don't
+# unify them.
 AGENT_ACTIVE_STATUSES: frozenset[TicketStatus] = frozenset({
     TicketStatus.OPEN,
     TicketStatus.ACCEPTED,
@@ -135,10 +144,12 @@ AGENT_ACTIVE_STATUSES: frozenset[TicketStatus] = frozenset({
 #                           blind spot. That was wrong: "cannot act on it" is
 #                           not "should not know about it".)
 #   - TERMINAL_STATUSES   — covered by the unread bucket, both parties.
-#   - TRIAGING/IN_PROGRESS— unreachable; no transition produces either
-#                           (see the INFO_REQUESTED row of the transition
-#                           table in ticket_service, which notes the
-#                           IN_PROGRESS half is forward-looking).
+#   - IN_PROGRESS         — unreachable; no transition produces it (see
+#                           the INFO_REQUESTED row of the transition table
+#                           in ticket_service, which notes the IN_PROGRESS
+#                           half is forward-looking). TRIAGING was the
+#                           other unreachable status and was removed
+#                           entirely on 2026-09-01.
 #
 # A single-member frozenset rather than a bare status because the next
 # status added here must be added in ONE place. Splitting the creator-side
@@ -289,7 +300,6 @@ def waiting_party(status: TicketStatus) -> WaitingParty:
         return WaitingParty.HUMAN
     if status in (
         TicketStatus.OPEN,
-        TicketStatus.TRIAGING,
         TicketStatus.ACCEPTED,
         TicketStatus.IN_PROGRESS,
     ):

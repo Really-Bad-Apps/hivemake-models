@@ -87,7 +87,6 @@ class TestTicketPriority:
 class TestTicketStatus:
     def test_values(self) -> None:
         assert TicketStatus.OPEN == "open"
-        assert TicketStatus.TRIAGING == "triaging"
         assert TicketStatus.ACCEPTED == "accepted"
         assert TicketStatus.IN_PROGRESS == "in_progress"
         assert TicketStatus.INFO_REQUESTED == "info_requested"
@@ -98,7 +97,7 @@ class TestTicketStatus:
         assert TicketStatus.REJECTED == "rejected"
 
     def test_member_count(self) -> None:
-        assert len(TicketStatus) == 10
+        assert len(TicketStatus) == 9
 
 
 class TestNegotiationAction:
@@ -163,7 +162,6 @@ class TestWaitingParty:
     def test_working_statuses_wait_on_assignee(self) -> None:
         for status in (
             TicketStatus.OPEN,
-            TicketStatus.TRIAGING,
             TicketStatus.ACCEPTED,
             TicketStatus.IN_PROGRESS,
         ):

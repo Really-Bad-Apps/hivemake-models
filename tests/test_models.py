@@ -170,6 +170,19 @@ class TestProject:
 
 
 class TestAgent:
+    def test_response_poll_interval(self):
+        agent = Agent(id=uuid4(), hive_id=uuid4(), project_id=uuid4(), name="A",
+                      status=AgentStatus.ACTIVE, created_at=0, updated_at=0)
+        assert agent.suggested_poll_interval_seconds is None
+        agent.autonomous = True
+        assert agent.suggested_poll_interval_seconds == 30
+        agent.response_time_total_seconds, agent.response_time_count = 1, 2
+        assert agent.suggested_poll_interval_seconds == 30
+        agent.response_time_total_seconds = 401
+        assert agent.suggested_poll_interval_seconds == 201
+        agent.autonomous = False
+        assert agent.suggested_poll_interval_seconds is None
+
     def test_create_with_defaults(self) -> None:
         agent = Agent(
             id=uuid4(),

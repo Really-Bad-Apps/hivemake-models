@@ -99,6 +99,20 @@ class Agent:
     config: dict = field(default_factory=dict)
     registered_at: Optional[int] = None
     autonomous: bool = False
+    response_time_total_seconds: int = 0
+    response_time_count: int = 0
+
+    @property
+    def suggested_poll_interval_seconds(self) -> Optional[int]:
+        """First-response polling hint, not liveness or completion time."""
+        if not self.autonomous:
+            return None
+        if not self.response_time_count:
+            return 30
+        rounded_mean = (
+            self.response_time_total_seconds + self.response_time_count - 1
+        ) // self.response_time_count
+        return max(30, rounded_mean)
 
 
 @dataclass
@@ -210,6 +224,11 @@ class OutboundTicket:
         after request_info the ticket is waiting on the creator to
         provide_info).
 
+    `suggested_poll_interval_seconds` is the mean first-response delay,
+    rounded up with a 30-second minimum/default. Only applies to autonomous,
+    non-self-assigned pickup waits; None otherwise or with an older server.
+    It does not estimate completion time or indicate liveness.
+
     The value is denormalized from that agent's `Agent.autonomous`
     flag at read time — it's a snapshot, not a live signal. If the
     flag flips between the response and a later poll, the caller sees
@@ -217,6 +236,8 @@ class OutboundTicket:
     """
     ticket: Ticket
     waiting_on_autonomous: bool
+    # None for manual agents, self-assignment, non-pickup waits, or older servers.
+    suggested_poll_interval_seconds: Optional[int] = None
 
 
 @dataclass

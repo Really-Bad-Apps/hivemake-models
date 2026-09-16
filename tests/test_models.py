@@ -379,6 +379,19 @@ class TestOutboundTicket:
         outbound = OutboundTicket(ticket=ticket, waiting_on_autonomous=False)
         assert outbound.waiting_on_autonomous is False
 
+    def test_last_seen_defaults_to_none(self) -> None:
+        """Older servers omit the field, so it must be optional."""
+        outbound = OutboundTicket(ticket=self._sample_ticket(), waiting_on_autonomous=True)
+        assert outbound.waiting_on_last_seen_seconds is None
+
+    def test_carries_last_seen_seconds(self) -> None:
+        outbound = OutboundTicket(
+            ticket=self._sample_ticket(),
+            waiting_on_autonomous=True,
+            waiting_on_last_seen_seconds=42,
+        )
+        assert outbound.waiting_on_last_seen_seconds == 42
+
 
 def _sample_ticket() -> Ticket:
     return Ticket(

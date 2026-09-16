@@ -229,8 +229,15 @@ class OutboundTicket:
     non-self-assigned pickup waits; None otherwise or with an older server.
     It does not estimate completion time or indicate liveness.
 
-    The value is denormalized from that agent's `Agent.autonomous`
-    flag at read time — it's a snapshot, not a live signal. If the
+    `waiting_on_last_seen_seconds` IS the liveness signal: seconds since
+    the next responder last made any authenticated API call. Autonomous
+    agents poll for work, so a value far above their usual cadence means
+    they have stopped polling. None when the next responder is a manual
+    agent (their last call only says when a human last ran them), is the
+    caller, has never called, on `list_outbox` rows, or with an older server.
+
+    `waiting_on_autonomous` is denormalized from that agent's
+    `Agent.autonomous` flag at read time — the flag is a snapshot. If the
     flag flips between the response and a later poll, the caller sees
     the new value on the next outbound call.
     """
@@ -238,6 +245,8 @@ class OutboundTicket:
     waiting_on_autonomous: bool
     # None for manual agents, self-assignment, non-pickup waits, or older servers.
     suggested_poll_interval_seconds: Optional[int] = None
+    # None for manual agents, the caller themselves, never-seen agents, or older servers.
+    waiting_on_last_seen_seconds: Optional[int] = None
 
 
 @dataclass

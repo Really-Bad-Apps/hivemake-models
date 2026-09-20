@@ -2,6 +2,7 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 from hivemake_models import (
+    UsageReport,
     HiveUsageSnapshot,
     OwnerUsage,
     UsageRun,
@@ -154,3 +155,24 @@ class TestNeverMeasured:
 
         assert usage.measured_at is None
         assert usage.measured_at != 0
+
+
+class TestUsageReportOptionality:
+
+    def test_missing_audit_numbers_are_None_not_zero(self) -> None:
+        """REGRESSION. `or 0` on these would make an unpopulated audit column
+        indistinguishable from a measured zero — and the report's headline
+        reading (the gap between db total and summed owner totals, ~37%
+        overhead) computes to -100% against a NULL-as-0, which looks like a
+        real figure rather than an error."""
+        report = UsageReport(
+            run_id=uuid4(), method_version="m", owners=[],
+            measured_at=None, cognee_db_total_bytes=None,
+            attributed_bytes=None,
+        )
+
+        assert report.cognee_db_total_bytes is None
+        assert report.attributed_bytes is None
+        assert report.measured_at is None
+        for value in (report.cognee_db_total_bytes, report.attributed_bytes):
+            assert value != 0, "absent must not be confusable with zero"

@@ -134,9 +134,22 @@ class UsageReport:
     produces none. Do not read absence as an error.
     """
     run_id: UUID
-    measured_at: int
     method_version: str
-    cognee_db_total_bytes: int
-    attributed_bytes: int
     owners: list[OwnerUsage]
+    # ALL THREE ARE Optional ON PURPOSE, and `or 0` is the wrong fix.
+    #
+    # They mirror nullable columns on `usage_runs`. A run that succeeded but
+    # whose audit columns were never populated would render as a real zero,
+    # and the damage is not cosmetic: the headline reading of this report is
+    # the GAP between `cognee_db_total_bytes` and the summed owner totals
+    # (~37% platform overhead). Against a NULL-coerced-to-0 that gap computes
+    # to -100%, which is a plausible-looking number rather than an obvious
+    # error.
+    #
+    # Same reasoning that made `OwnerUsage.measured_at` Optional rather than
+    # a unix 0 that renders as 1970. A missing measurement must be absent,
+    # never a convincing wrong one.
+    measured_at: Optional[int]
+    cognee_db_total_bytes: Optional[int]
+    attributed_bytes: Optional[int]
     edge_vector_match_ratio: Optional[float] = None

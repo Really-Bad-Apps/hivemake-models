@@ -1,4 +1,5 @@
-from uuid import uuid4
+from typing import Optional
+from uuid import UUID, uuid4
 
 from hivemake_models import (
     HiveUsageSnapshot,
@@ -9,9 +10,9 @@ from hivemake_models import (
 
 
 def _snapshot(
-    run_id=None,
-    hive_id=None,
-    owner_user_id=None,
+    run_id: Optional[UUID] = None,
+    hive_id: Optional[UUID] = None,
+    owner_user_id: Optional[UUID] = None,
     exact_bytes: int = 100,
     shared_entity_bytes: int = 10,
     edge_vector_bytes: int = 500,
@@ -113,21 +114,12 @@ class TestHiveUsageSnapshot:
 
 
 class TestOwnerUsage:
-    def test_totals_are_a_plain_sum_of_snapshots(self) -> None:
-        owner = uuid4()
-        run = uuid4()
-        first = _snapshot(run_id=run, owner_user_id=owner, exact_bytes=100)
-        second = _snapshot(run_id=run, owner_user_id=owner, exact_bytes=250)
-        usage = OwnerUsage(
-            owner_user_id=owner,
-            measured_at=1789916343,
-            total_bytes=first.total_bytes + second.total_bytes,
-            exact_bytes=first.exact_bytes + second.exact_bytes,
-            apportioned_bytes=30,
-            hives=[first, second],
-        )
-        assert usage.total_bytes == sum(h.total_bytes for h in usage.hives)
-        assert usage.exact_bytes == 350
+    # There is no "totals equal the sum of the hives" test here on purpose.
+    # OwnerUsage is a carrier: any such test would compute the expected total
+    # the same way it builds the object and pass regardless of the code. The
+    # per-snapshot invariant is enforced by chk_hive_usage_total in migration
+    # 028, and the rollup belongs to hivemake-core's tests once the service
+    # that performs it exists.
 
     def test_says_whether_the_graph_store_is_included(self) -> None:
         """So a reader can tell a whole footprint from the Postgres share."""

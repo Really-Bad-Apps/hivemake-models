@@ -43,6 +43,10 @@ class UsageRun:
     attributed_bytes: Optional[int] = None
     overhead_bytes: Optional[int] = None
     bytes_per_edge_vector: Optional[int] = None
+    # Stored as DOUBLE PRECISION, not NUMERIC: psycopg2 hands NUMERIC back as
+    # `Decimal`, which would make this field a Decimal at runtime despite the
+    # annotation — the same trap as an enum-typed field holding a plain str.
+    # A ratio needs no exact-decimal semantics.
     edge_vector_match_ratio: Optional[float] = None
     error: Optional[str] = None
 
@@ -62,9 +66,13 @@ class HiveUsageSnapshot:
     measured_at: int
     node_row_count: int
     edge_row_count: int
+    # Field order deliberately mirrors the column order in migration 028.
+    # Construction is by keyword everywhere, so this is not load-bearing today
+    # — but `exact_bytes` and `edge_vector_bytes` differ by roughly 60x, so a
+    # future positional build would be quietly wrong rather than loudly broken.
     exact_bytes: int
-    shared_entity_bytes: int
     edge_vector_bytes: int
+    shared_entity_bytes: int
     shared_edge_vector_bytes: int
     total_bytes: int
     owner_user_id: Optional[UUID] = None

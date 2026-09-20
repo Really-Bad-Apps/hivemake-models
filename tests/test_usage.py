@@ -132,3 +132,25 @@ class TestOwnerUsage:
             hives=[],
         )
         assert usage.includes_graph_store is False
+
+
+class TestNeverMeasured:
+
+    def test_measured_at_is_none_not_zero_when_nothing_has_been_measured(
+        self,
+    ) -> None:
+        """REGRESSION. 0 serialises as `0`, which a UI renders as
+        1970-01-01 beside an "as of" label — and the most common way to meet
+        the usage endpoint is a brand-new account with no sweep behind it.
+        A wrong date is worse than an absent one."""
+        usage = OwnerUsage(
+            owner_user_id=uuid4(),
+            measured_at=None,
+            total_bytes=0,
+            exact_bytes=0,
+            apportioned_bytes=0,
+            hives=[],
+        )
+
+        assert usage.measured_at is None
+        assert usage.measured_at != 0

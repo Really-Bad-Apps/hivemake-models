@@ -90,7 +90,13 @@ class OwnerUsage:
     and never double-count.
     """
     owner_user_id: UUID
-    measured_at: int
+    # None means NEVER MEASURED — no successful sweep has covered this owner
+    # yet. Deliberately not 0: a unix epoch of 0 serialises as `0`, which a
+    # UI formats as 1970-01-01 and shows next to an "as of" label, and the
+    # most common way to meet this endpoint is a brand-new account with no
+    # sweep behind it. That is a wrong figure, not a neutral one, and it
+    # defeats the reason the timestamp is returned at all.
+    measured_at: Optional[int]
     total_bytes: int
     exact_bytes: int
     apportioned_bytes: int

@@ -15,11 +15,13 @@ from hivemake_models.enums import (
     TicketPriority,
     TicketStatus,
     TicketType,
+    UsageRunStatus,
     UserStatus,
     WaitingParty,
     waiting_party,
 )
 from hivemake_models.knowledge import KnowledgeMatch
+from hivemake_models.usage import HiveUsageSnapshot, OwnerUsage, UsageRun
 from hivemake_models.models import (
     Agent,
     AgentMatch,
@@ -81,12 +83,14 @@ __all__ = [
     "HiveMember",
     "HiveTelegramLinkToken",
     "HiveTelegramSubscription",
+    "HiveUsageSnapshot",
     "Invite",
     "KnowledgeMatch",
     "Negotiation",
     "NotificationTarget",
     "OutboundTicket",
     "OutboundTicketListResult",
+    "OwnerUsage",
     "Project",
     "Ticket",
     "TicketHistory",
@@ -94,6 +98,8 @@ __all__ = [
     "EscalatedTicket",
     "TicketDigest",
     "UnreadTicket",
+    "UsageRun",
+    "UsageRunStatus",
     "User",
     "UserTelegramLinkToken",
 ]

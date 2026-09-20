@@ -305,3 +305,16 @@ def waiting_party(status: TicketStatus) -> WaitingParty:
     ):
         return WaitingParty.ASSIGNEE
     raise ValueError(f"no waiting party defined for status {status!r}")
+
+
+class UsageRunStatus(StrEnum):
+    """Lifecycle of one storage-measurement sweep (STORAGE-METERING.md §6).
+
+    FAILED is load-bearing rather than cosmetic: a sweep whose coverage checks
+    don't hold writes no snapshots at all. Half-measured usage that looks
+    plausible is worse than a visible gap, because it would silently
+    under-bill every owner at once.
+    """
+    RUNNING = "running"
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"

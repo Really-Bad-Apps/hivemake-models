@@ -90,12 +90,17 @@ class OwnerUsage:
     and never double-count.
     """
     owner_user_id: UUID
-    # None means NEVER MEASURED — no successful sweep has covered this owner
-    # yet. Deliberately not 0: a unix epoch of 0 serialises as `0`, which a
-    # UI formats as 1970-01-01 and shows next to an "as of" label, and the
-    # most common way to meet this endpoint is a brand-new account with no
-    # sweep behind it. That is a wrong figure, not a neutral one, and it
-    # defeats the reason the timestamp is returned at all.
+    # THREE distinct states, and conflating any two of them misreports:
+    #
+    #   None      no sweep has ever succeeded. Genuinely never measured.
+    #   <stamp>   a sweep ran and covered this owner. If total_bytes is 0,
+    #             that is a MEASURED zero, not an absence of measurement.
+    #   0         never valid here. A unix 0 renders as 1970-01-01 beside an
+    #             "as of" label — a wrong figure, not a neutral one.
+    #
+    # The middle case is the one that is easy to lose: an owner using nothing
+    # still gets a stamp, because the sweep did cover them. Both /usage/me
+    # and /admin/usage depend on that distinction holding.
     measured_at: Optional[int]
     total_bytes: int
     exact_bytes: int

@@ -21,7 +21,12 @@ from hivemake_models.enums import (
     waiting_party,
 )
 from hivemake_models.knowledge import KnowledgeMatch
-from hivemake_models.usage import HiveUsageSnapshot, OwnerUsage, UsageRun
+from hivemake_models.usage import (
+    HiveUsageSnapshot,
+    OwnerUsage,
+    UsageReport,
+    UsageRun,
+)
 from hivemake_models.models import (
     Agent,
     AgentMatch,
@@ -98,6 +103,7 @@ __all__ = [
     "EscalatedTicket",
     "TicketDigest",
     "UnreadTicket",
+    "UsageReport",
     "UsageRun",
     "UsageRunStatus",
     "User",

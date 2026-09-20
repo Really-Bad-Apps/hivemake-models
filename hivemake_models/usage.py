@@ -129,9 +129,15 @@ class UsageReport:
         cleanly but matched poorly under-bills everyone at once, and the
         numbers look perfectly reasonable while it does.
 
-    Owners with no measured storage are absent rather than present with
-    zeros: this is built from snapshots, and a hive with no ingested tickets
-    produces none. Do not read absence as an error.
+    EVERY owner appears, including those using nothing — they arrive with
+    zero totals and an empty `hives` list. So absence means exactly one
+    thing: not an owner of any hive.
+
+    That is a deliberate reversal. An earlier version omitted zero-usage
+    owners because zero rows look like noise in a billing report. They are
+    not: a customer consuming nothing is still a customer, tier work has to
+    see them, and omitting them made "uses nothing" indistinguishable from
+    "the sweep missed them".
     """
     run_id: UUID
     method_version: str

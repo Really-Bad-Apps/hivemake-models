@@ -108,6 +108,7 @@ class TestNegotiationAction:
         assert NegotiationAction.REDIRECTED == "redirected"
         assert NegotiationAction.INFO_REQUESTED == "info_requested"
         assert NegotiationAction.INFO_PROVIDED == "info_provided"
+        assert NegotiationAction.INFO_REQUEST_CANCELLED == "info_request_cancelled"
         assert NegotiationAction.RESOLVED == "resolved"
         assert NegotiationAction.REOPENED == "reopened"
         assert NegotiationAction.CLOSED == "closed"
@@ -116,7 +117,7 @@ class TestNegotiationAction:
         assert NegotiationAction.NOTE == "note"
 
     def test_member_count(self) -> None:
-        assert len(NegotiationAction) == 12
+        assert len(NegotiationAction) == 13
 
 
 class TestInviteStatus:
@@ -148,8 +149,7 @@ class TestWaitingParty:
     assignment pointed hive managers at the one party that couldn't act."""
 
     def test_info_requested_waits_on_creator_not_assignee(self) -> None:
-        """The regression. `provide_info` is creator-only, and every
-        state-changing action errors for the assignee from this status."""
+        """The creator owes the answer until the assignee cancels or escalates."""
         assert waiting_party(TicketStatus.INFO_REQUESTED) is WaitingParty.CREATOR
 
     def test_escalated_waits_on_human(self) -> None:

@@ -164,8 +164,8 @@ CREATOR_AWAITING_STATUSES: frozenset[TicketStatus] = frozenset({
 # `file_ticket` supports so that work survives the end of a session).
 #
 # AGENT_ACTIVE_STATUSES minus INFO_REQUESTED, and the subtraction is the
-# point. INFO_REQUESTED means an answer is owed, and the only verb that
-# works from it is `provide_info`, which is creator-only — so a
+# point. INFO_REQUESTED means an answer is owed via creator-only
+# `provide_info` (unless the assignee cancels the question) — so a
 # self-assigned ticket in that status belongs in `awaiting_your_response`,
 # where the caller (being the creator) can actually act. Listing it here
 # instead would advertise `resolve` and hand the agent a 4xx.
@@ -206,6 +206,7 @@ class NegotiationAction(StrEnum):
     REDIRECTED = "redirected"
     INFO_REQUESTED = "info_requested"
     INFO_PROVIDED = "info_provided"
+    INFO_REQUEST_CANCELLED = "info_request_cancelled"
     RESOLVED = "resolved"
     REOPENED = "reopened"
     CLOSED = "closed"
@@ -254,8 +255,8 @@ class WaitingParty(StrEnum):
     else waiting on". They agree for most of a ticket's life and diverge on
     exactly one status: INFO_REQUESTED, where the assignee asked a question
     and the CREATOR must answer it. Rendering only the assignment there
-    points a reader at the one party that cannot act — every state-changing
-    action errors for them, `provide_info` included (it is creator-only).
+    points a reader at the party waiting for the answer. The assignee can
+    cancel the question or escalate, but cannot supply the creator's reply.
 
     That divergence is not cosmetic. It cost a hive manager real time
     (ticket 7976e6fc): the UI showed a stuck ticket as "assigned to" the

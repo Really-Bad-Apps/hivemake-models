@@ -200,6 +200,7 @@ ESCALATED_STATUSES: frozenset[TicketStatus] = frozenset({
 
 
 class NegotiationAction(StrEnum):
+    RESCHEDULED = "rescheduled"
     SUBMITTED = "submitted"
     ACCEPTED = "accepted"
     REJECTED = "rejected"

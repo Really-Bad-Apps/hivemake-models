@@ -117,7 +117,7 @@ class TestNegotiationAction:
         assert NegotiationAction.NOTE == "note"
 
     def test_member_count(self) -> None:
-        assert len(NegotiationAction) == 13
+        assert len(NegotiationAction) == 14
 
 
 class TestInviteStatus:

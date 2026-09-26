@@ -1,3 +1,6 @@
+from hivemake_models.scheduling import (
+    is_scheduled, ticket_waiting_party, validate_not_before, validate_scheduled_offset,
+)
 from hivemake_models.enums import (
     AGENT_ACTIVE_STATUSES,
     AgentStatus,
@@ -56,6 +59,7 @@ from hivemake_models.models import (
 )
 
 __all__ = [
+    "is_scheduled", "ticket_waiting_party", "validate_not_before", "validate_scheduled_offset",
     # Enums
     "AGENT_ACTIVE_STATUSES",
     "AgentStatus",

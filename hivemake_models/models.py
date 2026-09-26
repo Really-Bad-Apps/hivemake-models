@@ -206,6 +206,8 @@ class Ticket:
     requested_by_user_id: Optional[UUID] = None
     assigned_agent_id: Optional[UUID] = None
     resolution: Optional[str] = None
+    not_before: Optional[int] = None
+    withdrawn_before_release: bool = False
 
 
 @dataclass
@@ -247,6 +249,7 @@ class OutboundTicket:
     suggested_poll_interval_seconds: Optional[int] = None
     # None for manual agents, the caller themselves, never-seen agents, or older servers.
     waiting_on_last_seen_seconds: Optional[int] = None
+    is_scheduled: bool = False
 
 
 @dataclass
@@ -368,7 +371,7 @@ class CheckTicketsResult:
     """Return shape for `check_tickets` — everything wanting the agent's
     attention, in one call.
 
-    Five buckets, because they are five different obligations with five
+    Six buckets, because they are six different obligations with six
     different next actions:
       - `inbox` — active tickets assigned to the caller BY SOMEONE ELSE
         (work owed to another agent). The caller can `resolve` / `reject` /
@@ -444,7 +447,12 @@ class CheckTicketsResult:
     measures obligations involving other parties, and `self_assigned` is
     capped separately with `self_assigned_truncated` reporting the clip.
 
-    `count` still spans all five buckets — it describes the response, not
+    `scheduled` contains future OPEN tickets filed by the caller, including
+    self-assigned tickets. These are excluded from active work queues until
+    not_before. It has an independent cap, reported by scheduled_truncated;
+    check_tickets(scheduled_offset=...) pages through this bucket alone.
+
+    `count` still spans all six buckets — it describes the response, not
     the trigger.
 
     ON OVERFLOW, `digest` IS THE ANSWER. Emptying the buckets was right —
@@ -477,6 +485,9 @@ class CheckTicketsResult:
     message: Optional[str] = None
     digest: list[TicketDigest] = field(default_factory=list)
     digest_truncated: bool = False
+    # Creator-only future work, independently capped; never triggers overflow.
+    scheduled: list[Ticket] = field(default_factory=list)
+    scheduled_truncated: bool = False
 
 
 @dataclass

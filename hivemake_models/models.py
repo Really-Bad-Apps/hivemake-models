@@ -101,6 +101,9 @@ class Agent:
     autonomous: bool = False
     response_time_total_seconds: int = 0
     response_time_count: int = 0
+    # Public intake for this agent only. None means the response omitted the
+    # owner-facing setting (legacy agent API); stored agents default to False.
+    is_open: Optional[bool] = None
 
     @property
     def suggested_poll_interval_seconds(self) -> Optional[int]:

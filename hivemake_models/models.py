@@ -211,6 +211,8 @@ class Ticket:
     resolution: Optional[str] = None
     not_before: Optional[int] = None
     withdrawn_before_release: bool = False
+    # Derived from durable runner deferrals; never a stored tickets column.
+    manual_handling_required: bool = False
 
 
 @dataclass
@@ -241,10 +243,9 @@ class OutboundTicket:
     agent (their last call only says when a human last ran them), is the
     caller, has never called, on `list_outbox` rows, or with an older server.
 
-    `waiting_on_autonomous` is denormalized from that agent's
-    `Agent.autonomous` flag at read time — the flag is a snapshot. If the
-    flag flips between the response and a later poll, the caller sees
-    the new value on the next outbound call.
+    `waiting_on_autonomous` reflects the next responder's autonomy and
+    ticket-level manual deferral at read time. A deferred ticket is manual
+    even when its assignee automatically handles other tickets.
     """
     ticket: Ticket
     waiting_on_autonomous: bool
@@ -344,6 +345,7 @@ class TicketDigest:
     title: str
     status: TicketStatus
     bucket: str
+    manual_handling_required: bool = False
 
 
 def is_self_assigned(ticket: "Ticket") -> bool:

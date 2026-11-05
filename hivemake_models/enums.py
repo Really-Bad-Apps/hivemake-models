@@ -125,6 +125,7 @@ TERMINAL_STATUSES: frozenset[TicketStatus] = frozenset({
 AGENT_ACTIVE_STATUSES: frozenset[TicketStatus] = frozenset({
     TicketStatus.OPEN,
     TicketStatus.ACCEPTED,
+    TicketStatus.IN_PROGRESS,
     TicketStatus.INFO_REQUESTED,
 })
 

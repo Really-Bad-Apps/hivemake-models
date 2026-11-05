@@ -23,7 +23,7 @@ def validate_scheduled_offset(value: int) -> None:
 
 def is_scheduled(ticket: "Ticket", now: Optional[int] = None) -> bool:
     now = int(time.time()) if now is None else now
-    return (ticket.status == TicketStatus.OPEN and ticket.not_before is not None
+    return (ticket.status in (TicketStatus.OPEN, TicketStatus.ACCEPTED, TicketStatus.IN_PROGRESS) and ticket.not_before is not None
             and ticket.not_before > now)
 
 
